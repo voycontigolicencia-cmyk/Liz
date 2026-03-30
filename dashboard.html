@@ -53,63 +53,93 @@
 
 <a href="index.html" class="back-to-site">← Volver al sitio</a>
 
-<div class="dashboard-container">
-  <div class="dashboard-header">
-    <h1>💅 Dashboard Administrativo</h1>
-    <p>Belleza Integral — Panel de control</p>
-  </div>
-
-  <div class="dashboard-grid">
-    <div class="dashboard-card">
-      <h3>📊 Estadísticas</h3>
-      <div class="stats-grid" id="statsGrid">
-        <div class="stat-item">
-          <div class="number" id="statToday">0</div>
-          <div class="label">Reservas Hoy</div>
-        </div>
-        <div class="stat-item">
-          <div class="number" id="statTotal">0</div>
-          <div class="label">Total Reservas</div>
-        </div>
-        <div class="stat-item">
-          <div class="number" id="statServices">9</div>
-          <div class="label">Servicios</div>
-        </div>
-        <div class="stat-item">
-          <div class="number" id="statClients">0</div>
-          <div class="label">Clientes</div>
-        </div>
-      </div>
+<div class="dashboard-container" id="dashboardContainer">
+  <!-- Login Form (shown initially) -->
+  <div id="loginSection">
+    <div class="dashboard-header">
+      <h1>🔐 Acceso Administrador</h1>
+      <p>Belleza Integral — Panel de control</p>
     </div>
-
-    <div class="dashboard-card">
-      <h3>⚡ Acciones Rápidas</h3>
-      <div class="quick-actions">
-        <button class="quick-action-btn" onclick="openAdminPanel()">📅 Gestionar Reservas</button>
-        <button class="quick-action-btn" onclick="viewServices()">💅 Ver Servicios</button>
-        <button class="quick-action-btn" onclick="viewClients()">👥 Ver Clientes</button>
-        <button class="quick-action-btn" onclick="sendTestEmail()">📧 Email de Prueba</button>
+    <div style="max-width: 400px; margin: 0 auto; text-align: center;">
+      <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 32px; box-shadow: var(--shadow);">
+        <h3 style="font-family: var(--font-display); font-size: 24px; margin-bottom: 20px; color: var(--gold);">💅 Panel Admin</h3>
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 24px;">Ingresa el token de acceso para continuar</p>
+        <input type="password" id="adminTokenInput" placeholder="Token de acceso" style="width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 16px;">
+        <button onclick="loginAdmin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--gold), var(--gold-dk)); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;">Acceder</button>
       </div>
     </div>
   </div>
 
-  <div class="dashboard-card recent-bookings">
-    <h3>📅 Reservas Recientes</h3>
-    <div id="recentBookings">
-      <p style="color: var(--muted); text-align: center; padding: 32px;">Cargando reservas...</p>
+  <!-- Dashboard Content (shown after login) -->
+  <div id="dashboardContent" style="display: none;">
+    <div class="dashboard-header">
+      <h1>💅 Dashboard Administrativo</h1>
+      <p>Belleza Integral — Panel de control</p>
+      <button onclick="logout()" style="position: absolute; top: 32px; right: 32px; padding: 8px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 99px; color: var(--text); cursor: pointer;">🔒 Cerrar Sesión</button>
     </div>
-  </div>
-</div>
 
-<!-- ADMIN PANEL MODAL (same as main site) -->
-<div class="admin-overlay" id="adminOverlay" style="display: none;">
-  <div class="admin-panel">
-    <div class="admin-head">
-      <h2>💅 Panel Admin</h2>
-      <button class="modal-close" onclick="closeAdmin()">&times;</button>
+    <div class="dashboard-grid">
+      <div class="dashboard-card">
+        <h3>📊 Estadísticas</h3>
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-item">
+            <div class="number" id="statToday">0</div>
+            <div class="label">Reservas Hoy</div>
+          </div>
+          <div class="stat-item">
+            <div class="number" id="statTotal">0</div>
+            <div class="label">Total Reservas</div>
+          </div>
+          <div class="stat-item">
+            <div class="number" id="statServices">9</div>
+            <div class="label">Servicios</div>
+          </div>
+          <div class="stat-item">
+            <div class="number" id="statClients">0</div>
+            <div class="label">Clientes</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-card">
+        <h3>⚡ Acciones Rápidas</h3>
+        <div class="quick-actions">
+          <button class="quick-action-btn" onclick="showReservationsTable()">📅 Gestionar Reservas</button>
+          <button class="quick-action-btn" onclick="viewServices()">💅 Ver Servicios</button>
+          <button class="quick-action-btn" onclick="viewClients()">👥 Ver Clientes</button>
+          <button class="quick-action-btn" onclick="sendTestEmail()">📧 Email de Prueba</button>
+        </div>
+      </div>
     </div>
-    <div class="admin-body" id="adminBody">
-      <!-- Login or content -->
+
+    <div class="dashboard-card recent-bookings">
+      <h3>📅 Reservas Recientes</h3>
+      <div id="recentBookings">
+        <p style="color: var(--muted); text-align: center; padding: 32px;">Cargando reservas...</p>
+      </div>
+    </div>
+
+    <!-- Full Reservations Table (shown when clicking "Gestionar Reservas") -->
+    <div class="dashboard-card" id="reservationsTable" style="display: none;">
+      <h3>📅 Todas las Reservas</h3>
+      <div style="overflow-x: auto;">
+        <table class="admin-table" id="fullReservationsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>Servicio</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="reservationsTableBody">
+            <!-- Filled by JavaScript -->
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -120,7 +150,7 @@
 <script src="js/api.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════
-// DASHBOARD — Admin Dashboard Logic
+// DASHBOARD — Admin Dashboard Logic (No Modal)
 // ═══════════════════════════════════════════════════════════════
 
 let dashboardState = {
@@ -130,16 +160,46 @@ let dashboardState = {
 
 const ADMIN_TOKEN = 'liz2026';
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   // Check if admin is logged in (from sessionStorage)
   const loggedIn = sessionStorage.getItem('adminLogged') === 'true';
   if (loggedIn) {
     dashboardState.adminLogged = true;
-    await loadDashboardData();
+    showDashboard();
   } else {
-    showLoginPrompt();
+    showLogin();
   }
 });
+
+function showLogin() {
+  document.getElementById('loginSection').style.display = 'block';
+  document.getElementById('dashboardContent').style.display = 'none';
+}
+
+function showDashboard() {
+  document.getElementById('loginSection').style.display = 'none';
+  document.getElementById('dashboardContent').style.display = 'block';
+  loadDashboardData();
+}
+
+function loginAdmin() {
+  const token = document.getElementById('adminTokenInput').value;
+  if (token === ADMIN_TOKEN) {
+    dashboardState.adminLogged = true;
+    sessionStorage.setItem('adminLogged', 'true');
+    showDashboard();
+    showToast('Bienvenida Liz 💅', 'success');
+  } else {
+    showToast('Token incorrecto', 'error');
+  }
+}
+
+function logout() {
+  dashboardState.adminLogged = false;
+  sessionStorage.removeItem('adminLogged');
+  showLogin();
+  showToast('Sesión cerrada', 'success');
+}
 
 async function loadDashboardData() {
   try {
@@ -201,75 +261,35 @@ function renderRecentBookings() {
   }).join('');
 }
 
-function showLoginPrompt() {
-  const password = prompt('Ingresa el token de administrador:');
-  if (password === ADMIN_TOKEN) {
-    dashboardState.adminLogged = true;
-    sessionStorage.setItem('adminLogged', 'true');
-    loadDashboardData();
-    showToast('Bienvenida Liz 💅', 'success');
-  } else {
-    alert('Token incorrecto');
-    location.href = 'index.html';
-  }
+function showReservationsTable() {
+  document.getElementById('reservationsTable').style.display = 'block';
+  renderFullReservationsTable();
+  // Scroll to table
+  document.getElementById('reservationsTable').scrollIntoView({ behavior: 'smooth' });
 }
 
-function openAdminPanel() {
-  if (!dashboardState.adminLogged) {
-    showLoginPrompt();
-    return;
-  }
-  document.getElementById('adminOverlay').style.display = 'flex';
-  renderAdminDashboard();
-}
-
-function closeAdmin() {
-  document.getElementById('adminOverlay').style.display = 'none';
-}
-
-async function renderAdminDashboard() {
-  // Use the same logic as in app.js
-  const today = new Date().toISOString().split('T')[0];
-  const todayCount = dashboardState.reservas.filter(r => r.fecha === today).length;
-  const totalRes = dashboardState.reservas.length;
-
-  let html = `
-    <div class="admin-stats">
-      <div class="admin-stat"><div class="num">${todayCount}</div><div class="lbl">Reservas Hoy</div></div>
-      <div class="admin-stat"><div class="num">${totalRes}</div><div class="lbl">Total Reservas</div></div>
-      <div class="admin-stat"><div class="num">9</div><div class="lbl">Servicios</div></div>
-      <div class="admin-stat"><div class="num">1</div><div class="lbl">Empleados</div></div>
-    </div>
-
-    <h3 style="font-family:var(--font-display);font-size:20px;margin-bottom:16px;color:var(--gold)">📅 Reservas</h3>
-    <div style="overflow-x:auto;margin-bottom:28px">
-      <table class="admin-table">
-        <thead><tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acciones</th></tr></thead>
-        <tbody>`;
-
-  dashboardState.reservas.forEach((r, i) => {
+function renderFullReservationsTable() {
+  const tbody = document.getElementById('reservationsTableBody');
+  tbody.innerHTML = dashboardState.reservas.map((r, i) => {
     const badgeCls = r.estado === 'Confirmada' ? 'badge-ok' : r.estado === 'Cancelada' ? 'badge-cancel' : 'badge-pending';
     const canReschedule = canRescheduleCheck(r);
-    html += `<tr>
-      <td style="font-family:monospace;font-size:12px">${r.id}</td>
-      <td>${r.nombre}<br><span style="font-size:11px;color:var(--muted)">${r.email}</span></td>
-      <td>${r.servicio}</td>
-      <td>${r.fecha}</td>
-      <td>${r.hora}</td>
-      <td><span class="badge ${badgeCls}">${r.estado}</span></td>
-      <td>
-        ${r.estado !== 'Cancelada' ? `
-          <button class="admin-btn danger" style="margin-right:4px;font-size:11px;padding:4px 10px" onclick="adminCancel(${i})">Cancelar</button>
-          ${canReschedule ? `<button class="admin-btn" style="font-size:11px;padding:4px 10px" onclick="adminReschedule(${i})">Reagendar</button>` : ''}
-        ` : '<span style="color:var(--muted);font-size:12px">—</span>'}
-      </td>
-    </tr>`;
-  });
-
-  html += `</tbody></table></div>
-    <button class="admin-btn" style="margin-top:16px" onclick="logout()">🔒 Cerrar Sesión</button>`;
-
-  document.getElementById('adminBody').innerHTML = html;
+    return `
+      <tr>
+        <td style="font-family:monospace;font-size:12px">${r.id}</td>
+        <td>${r.nombre}<br><span style="font-size:11px;color:var(--muted)">${r.email}</span></td>
+        <td>${r.servicio}</td>
+        <td>${r.fecha}</td>
+        <td>${r.hora}</td>
+        <td><span class="badge ${badgeCls}">${r.estado}</span></td>
+        <td>
+          ${r.estado !== 'Cancelada' ? `
+            <button class="admin-btn danger" style="margin-right:4px;font-size:11px;padding:4px 10px" onclick="adminCancel(${i})">Cancelar</button>
+            ${canReschedule ? `<button class="admin-btn" style="font-size:11px;padding:4px 10px" onclick="adminReschedule(${i})">Reagendar</button>` : ''}
+          ` : '<span style="color:var(--muted);font-size:12px">—</span>'}
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
 function canRescheduleCheck(r) {
@@ -288,9 +308,11 @@ async function adminCancel(i) {
     if (response.ok) {
       dashboardState.reservas[i].estado = 'Cancelada';
       showToast(`Reserva cancelada. Correo de disculpas enviado a ${r.email}`, 'success');
-      renderAdminDashboard();
       updateStats();
       renderRecentBookings();
+      if (document.getElementById('reservationsTable').style.display !== 'none') {
+        renderFullReservationsTable();
+      }
     } else {
       showToast(response.error || 'Error al cancelar', 'error');
     }
@@ -298,9 +320,11 @@ async function adminCancel(i) {
     // Fallback to demo
     dashboardState.reservas[i].estado = 'Cancelada';
     showToast(`Reserva cancelada (demo). Correo simulado enviado a ${r.email}`, 'success');
-    renderAdminDashboard();
     updateStats();
     renderRecentBookings();
+    if (document.getElementById('reservationsTable').style.display !== 'none') {
+      renderFullReservationsTable();
+    }
   }
 }
 
@@ -321,7 +345,11 @@ async function adminReschedule(i) {
       dashboardState.reservas[i].fecha = newDate;
       dashboardState.reservas[i].hora = newHora;
       showToast('Reserva reagendada. Se notificará al cliente por correo.', 'success');
-      renderAdminDashboard();
+      updateStats();
+      renderRecentBookings();
+      if (document.getElementById('reservationsTable').style.display !== 'none') {
+        renderFullReservationsTable();
+      }
     } else {
       showToast(response.error || 'Error al reagendar', 'error');
     }
@@ -330,38 +358,36 @@ async function adminReschedule(i) {
     dashboardState.reservas[i].fecha = newDate;
     dashboardState.reservas[i].hora = newHora;
     showToast('Reserva reagendada (demo). Correo simulado enviado.', 'success');
-    renderAdminDashboard();
+    updateStats();
+    renderRecentBookings();
+    if (document.getElementById('reservationsTable').style.display !== 'none') {
+      renderFullReservationsTable();
+    }
   }
 }
 
+// Placeholder functions for other actions
 function viewServices() {
-  alert('Para editar servicios, modifica directamente en la Google Sheet.');
+  showToast('Para editar servicios, modifica directamente en la Google Sheet.', 'success');
 }
 
 function viewClients() {
-  alert('Los clientes se registran automáticamente al crear reservas.');
+  showToast('Los clientes se registran automáticamente al crear reservas.', 'success');
 }
 
 function sendTestEmail() {
-  const email = prompt('Email de destino para prueba:');
-  if (email) {
-    // This would need to be implemented in the backend
-    alert('Función no implementada en el frontend. Usa el menú de Google Sheets.');
-  }
-}
-
-function logout() {
-  dashboardState.adminLogged = false;
-  sessionStorage.removeItem('adminLogged');
-  location.reload();
+  showToast('Función próximamente - usa el menú de Google Sheets.', 'success');
 }
 
 // ── TOAST ─────────────────────────────────────────────
 function showToast(msg, type='error') {
   const t = document.getElementById('toast');
+  t.className = 'toast';
   t.textContent = msg;
-  t.className = 'toast ' + type + ' show';
-  setTimeout(() => t.classList.remove('show'), 3500);
+  if (type === 'success') t.classList.add('success');
+  else if (type === 'error') t.classList.add('error');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
 }
 </script>
 
