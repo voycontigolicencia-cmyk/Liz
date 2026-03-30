@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="theme-color" content="#C9A84C">
+  <meta name="description" content=" - Salón de Belleza especializado en Uñas y Cabello. Reserva tu cita online en Santiago.">
+  <title>Salon — Uñas y Cabello</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Hammersmith+One&family=Open+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital@0;1&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Estilos -->
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="loader-spin"></div>
+  <p class="loader-txt" id="loader-txt">Cargando…</p>
+</div>
+
+<!-- TOAST -->
+<div class="toast-error" id="toast-error"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <span class="nav-logo" id="nav-logo">💅</span>
+      <span class="nav-nombre">Salon Liz</span>
+    </div>
+    <div class="nav-links">
+      <a class="nav-link" href="#servicios">Servicios</a>
+      <a class="nav-link" href="#blog">Blog</a>
+      <a class="nav-link" href="#reservar">Reservar</a>
+      <a class="nav-link" href="#contacto">Contacto</a>
+      <a class="nav-link nav-link--admin" href="./dashboard.html">Admin</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- HERO SECTION CON ANIMACIONES -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-blob hero-blob-1"></div>
+    <div class="hero-blob hero-blob-2"></div>
+    <div class="hero-blob hero-blob-3"></div>
+  </div>
+  
+  <div class="hero-content">
+    <div class="hero-chip">✨ Belleza profesional · Sin esperar</div>
+    <h1 class="hero-title">
+      <span class="hero-word">Tu Belleza</span>
+      <span class="hero-word">Es Nuestra</span>
+      <span class="hero-word">Prioridad</span>
+    </h1>
+    <p class="hero-sub">Uñas impecables y cabello radiante. Reserva tu cita ahora y luce espectacular.</p>
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="document.getElementById('reservar').scrollIntoView({behavior:'smooth'})">
+        📅 Reservar Ahora
+      </button>
+      <button class="btn-secondary" onclick="document.getElementById('servicios').scrollIntoView({behavior:'smooth'})">
+        Ver Servicios →
+      </button>
+    </div>
+  </div>
+  
+  <!-- WhatsApp Flotante -->
+  <a href="https://wa.me/56936616271?text=Hola%20Mary%20Blanca,%20quisiera%20agendar%20una%20cita" 
+     target="_blank" 
+     class="whatsapp-btn" 
+     title="Contactar por WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+</section>
+
+<!-- PANTALLA PRINCIPAL DE RESERVAS -->
+<div id="reservas-screen">
+  
+  <!-- SECCIÓN SERVICIOS -->
+  <section id="servicios" class="servicios-section">
+    <div class="container">
+      <div class="section-header">
+        <h2>Nuestros <span class="gradient-text">Servicios</span></h2>
+        <p class="section-subtitle">Elige el servicio que deseas para ver disponibilidad</p>
+      </div>
+      
+      <!-- SERVICIOS DE PELUQUERÍA -->
+      <div class="servicios-categoria">
+        <h3 class="cat-titulo">💇 Servicios de Peluquería</h3>
+        
+        <div class="servicios-grid">
+          <!-- CORTES -->
+          <div class="servicio-card">
+            <div class="servicio-icon">✂️</div>
+            <h4>Cortes</h4>
+            <p>Nuestros estilistas te ayudarán a encontrar el estilo perfecto para ti, utilizando productos de alta calidad para mantener tu cabello saludable y radiante.</p>
+            <button class="btn-ver-mas" onclick="scrollToServicios('Cortes')">Ver más</button>
+          </div>
+          
+          <!-- PEINADOS -->
+          <div class="servicio-card">
+            <div class="servicio-icon">👰</div>
+            <h4>Peinados</h4>
+            <p>¿Buscas un peinado espectacular para una ocasión especial? ¡Haz tu cita y sorprende a todos con tu nuevo look!</p>
+            <button class="btn-ver-mas" onclick="scrollToServicios('Peinados')">Ver más</button>
+          </div>
+          
+          <!-- COLOR -->
+          <div class="servicio-card">
+            <div class="servicio-icon">🎨</div>
+            <h4>Coloración</h4>
+            <p>Expertos en coloración que te ayudarán a encontrar el tono perfecto para realzar tu belleza natural con las técnicas más modernas.</p>
+            <button class="btn-ver-mas" onclick="scrollToServicios('Color')">Ver más</button>
+          </div>
+          
+          <!-- ALISADOS -->
+          <div class="servicio-card">
+            <div class="servicio-icon">🌊</div>
+            <h4>Alisados & Botox Capilar</h4>
+            <p>Cabello liso, sedoso y manejable. Botox capilar para restaurar la salud y brillo de tu cabello dañado.</p>
+            <button class="btn-ver-mas" onclick="scrollToServicios('Alisados')">Ver más</button>
+          </div>
+          
+          <!-- MASAJES -->
+          <div class="servicio-card">
+            <div class="servicio-icon">💆</div>
+            <h4>Masajes Capilares</h4>
+            <p>Relájate y cuida tu cabello. Masajes terapéuticos que mejoran la circulación y alivian el estrés.</p>
+            <button class="btn-ver-mas" onclick="scrollToServicios('Masajes')">Ver más</button>
+          </div>
+          
+          <!-- LAVADOS -->
+          <div class="servicio-card">
+            <div class="servicio-icon">💧</div>
+            <h4>Lavados Premium</h4>
+            <p>Lavado especializado con productos de alta calidad para mantener tu cabello limpio, saludable y nutritivo.</p>
+            <button class="btn-ver-mas" onclick="scrollToServicios('Lavados')">Ver más</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- SERVICIOS DE UÑAS -->
+      <div class="servicios-categoria">
+        <h3 class="cat-titulo">💅 Servicios de Uñas</h3>
+        
+        <div class="servicios-grid">
+          <!-- MANICURE -->
+          <div class="servicio-card">
+            <div class="servicio-icon">💅</div>
+            <h4>Manicure</h4>
+            <p>Cuidado completo de tus manos con productos de la mejor calidad. Diseños personalizados y colores a la moda.</p>
+            <button class="btn-ver-mas" onclick="scrollToServicios('Manicure')">Ver más</button>
+          </div>
+          
+          <!-- MANICURE PERMANENTE -->
+          <div class="servicio-card">
+            <div class="servicio-icon">✨</div>
+            <h4>Manicure Permanente</h4>
+            <p>Esmalte que dura 14+ días sin dañar tus uñas. Fórmulas especiales que cuidan la salud capilar.</p>
+            <button class="btn-ver-mas" onclick="scrollToServicios('Permanente')">Ver más</button>
+          </div>
+          
+          <!-- DISEÑOS -->
+          <div class="servicio-card">
+            <div class="servicio-icon">🎀</div>
+            <h4>Diseños Artísticos</h4>
+            <p>Desde nail art clásico hasta diseños personalizados. Crea unas únicas que expresen tu estilo.</p>
+            <button class="btn-ver-mas" onclick="scrollToServicios('Diseños')">Ver más</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LAYOUT RESERVAS -->
+  <section id="reservar" class="reservas-layout">
+    <div class="container">
+      <!-- COLUMNA PRINCIPAL -->
+      <div class="reservas-main">
+
+        <!-- PASO 1: SERVICIO -->
+        <div class="paso" id="paso-servicio">
+          <div class="paso-titulo" data-paso="1">Elige tu servicio</div>
+          <div id="servicios-grid">
+            <div style="padding:40px;text-align:center;color:var(--muted)">Cargando servicios…</div>
+          </div>
+        </div>
+
+        <!-- PASO 2: FECHA -->
+        <div class="paso" id="paso-fecha">
+          <div class="paso-titulo" data-paso="2">Selecciona la fecha</div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px">
+            <div id="calendario"></div>
+            <div id="fecha-display" style="text-align:center;margin-top:12px;font-size:13px;color:var(--gold);font-weight:600;min-height:20px"></div>
+          </div>
+        </div>
+
+        <!-- PASO 3: ESPECIALISTA Y HORA -->
+        <div class="paso" id="paso-hora">
+          <div class="paso-titulo" data-paso="3">Elige especialista y hora</div>
+          <div id="empleados-filtro" style="margin-bottom:16px"></div>
+          <div id="slots-container">
+            <p class="slots-vacio">Selecciona un servicio y fecha para ver disponibilidad.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="reservas-sidebar">
+        <div class="sidebar-card">
+          <div class="sidebar-titulo">Tu selección</div>
+          <div id="resumen-seleccion">
+            <p class="resumen-placeholder">Selecciona un servicio y fecha para continuar.</p>
+          </div>
+        </div>
+
+        <!-- Info del negocio -->
+        <div class="sidebar-card" id="contacto">
+          <div class="sidebar-titulo">📞 Contacto</div>
+          <div style="font-size:13px;color:var(--muted);line-height:2">
+            <p><strong>Dirección:</strong></p>
+            <p>Amunategui 92, Santiago centro, Santiago</p>
+            <p style="margin-top:12px"><strong>Teléfono:</strong></p>
+            <p>+56 9 936616271</p>
+            <p style="margin-top:12px"><strong>WhatsApp:</strong></p>
+            <a href="https://wa.me/56936616271" style="color:var(--gold);text-decoration:none">+56 9 3661 6271</a>
+            <p style="margin-top:12px"><strong>Email:</strong></p>
+            <a href="mailto:jose.teran1010a@gmail.com" style="color:var(--gold);text-decoration:none">jose.teran1010@gmail.com</a>
+          </div>
+        </div>
+        
+        <!-- Horarios -->
+        <div class="sidebar-card">
+          <div class="sidebar-titulo">⏰ Horarios</div>
+          <div style="font-size:13px;color:var(--muted);line-height:2">
+            <p>📋 Lun-Vie: 09:00 – 20:00</p>
+            <p>🗓️ Sábado: 09:00 – 14:00</p>
+            <p>🎉 Dom/Feriados: 50% adelantado</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECCIÓN BLOG -->
+  <section id="blog" class="blog-section">
+    <div class="container">
+      <div class="section-header">
+        <h2>Nuestro <span class="gradient-text">Blog</span></h2>
+        <p class="section-subtitle">Tips y consejos para lucir siempre hermosa</p>
+      </div>
+
+      <details class="blog-articles" open>
+        <summary class="blog-summary">📚 Ver artículos</summary>
+        
+        <div class="blog-grid">
+          <!-- ARTÍCULO 1 -->
+          <article class="blog-card">
+            <div class="blog-date">18/03/2026</div>
+            <h3 class="blog-title">Cambio de Look: 3 errores que arruinan tu cabello</h3>
+            <p class="blog-excerpt">Evita errores comunes al teñir tu cabello. Aprende cómo nuestro diagnóstico de porosidad garantiza un color vibrante y una fibra capilar sana.</p>
+            <a href="#" class="blog-link">Leer más →</a>
+          </article>
+
+          <!-- ARTÍCULO 2 -->
+          <article class="blog-card">
+            <div class="blog-date">18/03/2026</div>
+            <h3 class="blog-title">Manicure Permanente vs. Esmalte Común</h3>
+            <p class="blog-excerpt">¿Cuál dura más y cuida mejor tus uñas? Descubre por qué nuestras fórmulas son la mejor opción para la salud de tus uñas.</p>
+            <a href="#" class="blog-link">Leer más →</a>
+          </article>
+
+          <!-- ARTÍCULO 3 -->
+          <article class="blog-card">
+            <div class="blog-date">22/01/2026</div>
+            <h3 class="blog-title">Cuidados esenciales para mantener tu color en verano</h3>
+            <p class="blog-excerpt">¿Cuáles son los enemigos del color de tu pelo en verano? Descubre tips para mantenerlo por más tiempo.</p>
+            <a href="#" class="blog-link">Leer más →</a>
+          </article>
+
+          <!-- ARTÍCULO 4 -->
+          <article class="blog-card">
+            <div class="blog-date">22/01/2026</div>
+            <h3 class="blog-title">Depilación perfecta durante el verano</h3>
+            <p class="blog-excerpt">Guía técnica profesional. Una rutina correcta es clave para proteger tu piel y optimizar los tiempos.</p>
+            <a href="#" class="blog-link">Leer más →</a>
+          </article>
+
+          <!-- ARTÍCULO 5 -->
+          <article class="blog-card">
+            <div class="blog-date">15/10/2025</div>
+            <h3 class="blog-title">Manicura y Salud: Lo que dice la ciencia</h3>
+            <p class="blog-excerpt">En Mary Blanca, belleza y salud son inseparables. Todos nuestros esmaltes son especiales y amigables con tu salud.</p>
+            <a href="#" class="blog-link">Leer más →</a>
+          </article>
+
+          <!-- ARTÍCULO 6 -->
+          <article class="blog-card">
+            <div class="blog-date">18/08/2025</div>
+            <h3 class="blog-title">Invierno: la temporada ideal para cuidar tu piel</h3>
+            <p class="blog-excerpt">Cuando llega el frío, nuestra piel pide atención especial. Descubre por qué el invierno es perfecto para peeling facial.</p>
+            <a href="#" class="blog-link">Leer más →</a>
+          </article>
+        </div>
+      </details>
+    </div>
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      
+      <div class="footer-section">
+        <div class="footer-logo" id="footer-logo">💅</div>
+        <h4> Estética</h4>
+        <p>Uñas y Cabello de Calidad Premium</p>
+      </div>
+
+      <div class="footer-section">
+        <h4>Horarios</h4>
+        <ul class="footer-links">
+          <li>📋 Lun-Vie: 09:00 – 20:00</li>
+          <li>🗓️ Sábado: 09:00 – 14:00</li>
+          <li>🎉 Dom/Feriados: 50% adelantado</li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h4>Contacto</h4>
+        <ul class="footer-links">
+          <li><a href="tel:+56936616271">📞 +56 9 936616271</a></li>
+          <li><a href="https://wa.me/56936616271">📱 WhatsApp</a></li>
+          <li><a href="mailto:jose.teran1010@gmail.com">📧 jose.teran1010@gmail.com</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-section">
+        <h4>Ubicación</h4>
+        <p>Amunategui 92<br>Santiago Centro<br>Santiago, Chile</p>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 Salon liz . Todos los derechos reservados.</p>
+      <p>Desarrollado con ❤️ para tu belleza</p>
+    </div>
+  </div>
+</footer>
+
+<!-- PANTALLA DE CONFIRMACIÓN -->
+<div id="confirmacion-screen" style="display:none">
+  <div class="conf-screen">
+    <div class="conf-icon">🎉</div>
+    <h2>¡Reserva Confirmada!</h2>
+    <p style="color:var(--muted);margin-bottom:8px">Tu número de reserva es:</p>
+    <div class="conf-id" id="conf-id">—</div>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:20px">
+      Recibirás un email de confirmación.
+    </p>
+    <div class="conf-detalles">
+      <div class="conf-item"><span>Cliente</span><strong id="conf-nombre">—</strong></div>
+      <div class="conf-item"><span>Servicio</span><strong id="conf-srv">—</strong></div>
+      <div class="conf-item"><span>Especialista</span><strong id="conf-barbero">—</strong></div>
+      <div class="conf-item"><span>Fecha</span><strong id="conf-fecha">—</strong></div>
+      <div class="conf-item"><span>Hora</span><strong id="conf-hora">—</strong></div>
+    </div>
+    <button class="btn-primary" style="margin-top:20px" onclick="nuevaReserva()">
+      Hacer otra reserva
+    </button>
+  </div>
+</div>
+
+<!-- MODAL DE RESERVA -->
+<div class="modal-back" id="modal-reserva">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>✨ Confirmar Reserva</h3>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Resumen -->
+      <div class="modal-resumen">
+        <div class="modal-res-item"><span>Servicio</span><strong id="modal-srv">—</strong></div>
+        <div class="modal-res-item"><span>Especialista</span><strong id="modal-barbero">—</strong></div>
+        <div class="modal-res-item"><span>Fecha</span><strong id="modal-fecha">—</strong></div>
+        <div class="modal-res-item"><span>Hora</span><strong id="modal-hora">—</strong></div>
+        <div class="modal-res-item"><span>Precio</span><strong id="modal-precio" style="color:var(--gold-lt)">—</strong></div>
+      </div>
+
+      <!-- Sesión (si aplica) -->
+      <div id="sesion-group" style="display:none" class="form-group">
+        <label class="form-label">N° de Sesión</label>
+        <select class="form-input form-select" id="sesion-num"></select>
+      </div>
+
+      <!-- Formulario cliente -->
+      <div class="form-2col">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input class="form-input" id="inp-nombre" type="text" placeholder="Tu nombre" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          <input class="form-input" id="inp-tel" type="tel" placeholder="+56 9 …" autocomplete="tel">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input class="form-input" id="inp-email" type="email" placeholder="tu@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas (opcional)</label>
+        <textarea class="form-input form-textarea" id="inp-notas" placeholder="Tono de color, diseño deseado, etc."></textarea>
+      </div>
+
+      <button class="btn-confirmar" onclick="confirmarReserva()">
+        ✅ Confirmar Reserva
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="./js/api.js"></script>
+<script src="./js/calendar.js"></script>
+<script src="./js/app.js"></script>
+
+</body>
+</html>
