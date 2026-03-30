@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#C9A84C">
+<title>Belleza Integral — Salón de Liz</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Styles -->
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- LOADER -->
+<div class="page-loader" id="pageLoader">
+  <div class="loader-ring"></div>
+  <div class="loader-brand">Belleza Integral</div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <div class="nav-brand"><span class="dot"></span> Belleza Integral</div>
+    <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div class="nav-links" id="navLinks">
+      <a href="#servicios">Servicios</a>
+      <a href="#reservar">Reservar</a>
+      <a href="#contacto">Contacto</a>
+      <a href="#" class="nav-admin" onclick="event.preventDefault();openAdmin()">Admin</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <div class="hero-blob hero-blob-1"></div>
+    <div class="hero-blob hero-blob-2"></div>
+    <div class="hero-blob hero-blob-3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-chip">✨ Santiago Centro · Belleza profesional</div>
+    <h1 class="hero-title">
+      <span class="line">Tu Belleza</span>
+      <span class="line">Es Nuestra</span>
+      <span class="line">Prioridad</span>
+    </h1>
+    <p class="hero-sub">Uñas impecables y cabello radiante. Reserva tu cita ahora con Liz y luce espectacular.</p>
+    <div class="hero-ctas">
+      <a href="#reservar" class="btn-gold">📅 Reservar Cita</a>
+      <a href="#servicios" class="btn-outline">Ver Servicios →</a>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICIOS -->
+<section class="section servicios-section" id="servicios">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="section-header reveal">
+      <h2>Nuestros <em>Servicios</em></h2>
+      <p>Elige el servicio perfecto para ti. Cada detalle pensado para realzar tu belleza.</p>
+    </div>
+
+    <!-- Peluquería -->
+    <h3 class="servicios-cat-title reveal">💇 Peluquería</h3>
+    <div class="servicios-grid" id="serviciosPelu">
+      <!-- Filled by JS -->
+    </div>
+
+    <!-- Uñas -->
+    <h3 class="servicios-cat-title reveal">💅 Uñas</h3>
+    <div class="servicios-grid" id="serviciosUnas">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- RESERVAS -->
+<section class="section reservas-section" id="reservar">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="section-header reveal">
+      <h2>Reserva tu <em>Cita</em></h2>
+      <p>Elige servicio, fecha y horario en pocos pasos</p>
+    </div>
+
+    <div class="reservas-layout">
+      <div class="reservas-main" id="reservasMain">
+        <!-- Step 1: Service -->
+        <div class="paso">
+          <div class="paso-header"><div class="paso-num">1</div><h3>Elige tu servicio</h3></div>
+          <div class="srv-mini-grid" id="srvPicker"></div>
+        </div>
+
+        <!-- Step 2: Date -->
+        <div class="paso">
+          <div class="paso-header"><div class="paso-num">2</div><h3>Selecciona la fecha</h3></div>
+          <div class="cal-wrap">
+            <div class="cal-nav">
+              <button onclick="changeMonth(-1)">←</button>
+              <span id="calMonth"></span>
+              <button onclick="changeMonth(1)">→</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+          <div id="fechaDisplay" style="text-align:center;margin-top:10px;font-size:13px;color:var(--gold);font-weight:600;min-height:20px"></div>
+        </div>
+
+        <!-- Step 3: Time -->
+        <div class="paso">
+          <div class="paso-header"><div class="paso-num">3</div><h3>Elige tu horario</h3></div>
+          <div class="slots-grid" id="slotsGrid">
+            <p style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px;font-size:14px">Selecciona servicio y fecha para ver horarios disponibles</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="reservas-sidebar">
+        <div class="side-card">
+          <h4>🛒 Tu selección</h4>
+          <div id="sideResumen">
+            <p style="color:var(--muted);font-size:13px;text-align:center;padding:16px">Selecciona un servicio para comenzar</p>
+          </div>
+        </div>
+
+        <div class="side-card" id="contacto">
+          <h4>📞 Contacto</h4>
+          <div class="info-line">
+            <p><strong>Dirección:</strong></p>
+            <p>Santiago Centro, Santiago</p>
+            <p style="margin-top:10px"><strong>WhatsApp:</strong></p>
+            <a href="https://wa.me/56964364128">+56 964 364 128</a>
+            <p style="margin-top:10px"><strong>Instagram:</strong></p>
+            <a href="https://www.instagram.com/bellezaintegral.liz?igsh=MWNua2d1d2R3aW83bA==" target="_blank">@bellezaintegral</a>
+          </div>
+        </div>
+
+        <div class="side-card">
+          <h4>⏰ Horarios</h4>
+          <div class="info-line">
+            <p>📋 Lun-Vie: 09:00 – 20:00</p>
+            <p>🗓️ Sábado: 09:00 – 14:00</p>
+            <p>🎉 Dom/Feriados: 50% adelantado</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-col">
+      <h4>Belleza Integral</h4>
+      <p>Salón de belleza de Liz.<br>Uñas y cabello de calidad premium en Santiago Centro.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Horarios</h4>
+      <ul>
+        <li>📋 Lun-Vie: 09:00 – 20:00</li>
+        <li>🗓️ Sábado: 09:00 – 14:00</li>
+        <li>🎉 Dom/Feriados: 50% adelantado</li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contacto</h4>
+      <ul>
+        <li><a href="https://wa.me/56964364128">📱 WhatsApp: +56 964 364 128</a></li>
+        <li><a href="https://www.instagram.com/bellezaintegral.liz?igsh=MWNua2d1d2R3aW83bA==" target="_blank">📸 @bellezaintegral</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Ubicación</h4>
+      <p>Santiago Centro<br>Santiago, Chile</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2026 Belleza Integral — Salón de Liz. Todos los derechos reservados.</p>
+    <p style="margin-top:6px;font-size:11px;color:rgba(255,255,255,.3)">Si no se realiza el pago de la reserva y se envía el comprobante, se dará por cancelada la reserva y se tendrá que reagendar nuevamente.</p>
+  </div>
+</footer>
+
+<!-- FLOATING BUTTONS -->
+<a href="https://www.instagram.com/bellezaintegral.liz?igsh=MWNua2d1d2R3aW83bA==" target="_blank" class="ig-float" title="Síguenos en Instagram">
+  <i class="fab fa-instagram"></i>
+</a>
+<a href="https://wa.me/56964364128?text=Hola%20Liz,%20quisiera%20agendar%20una%20cita" target="_blank" class="wa-float" title="WhatsApp">
+  <i class="fab fa-whatsapp"></i>
+</a>
+
+<!-- BOOKING MODAL -->
+<div class="modal-overlay" id="bookingModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>✨ Confirmar Reserva</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-summary" id="modalSummary"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" id="fNombre" placeholder="Tu nombre completo" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label>Teléfono *</label>
+          <input type="tel" id="fTel" placeholder="+56 9 ..." autocomplete="tel">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email *</label>
+        <input type="email" id="fEmail" placeholder="tu@email.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Notas (opcional)</label>
+        <textarea id="fNotas" placeholder="Tono de color, diseño deseado, etc."></textarea>
+      </div>
+      <div class="terms-check">
+        <input type="checkbox" id="fTerms">
+        <span>Acepto los <a href="#" onclick="event.preventDefault();openTerms()">términos y condiciones</a> del servicio. Entiendo que si no se realiza el pago de la reserva y se envía el comprobante, la reserva se dará por cancelada.</span>
+      </div>
+      <button class="btn-confirm" id="btnConfirm" onclick="submitBooking()" disabled>✅ Confirmar Reserva</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION SCREEN (hidden) -->
+<div id="confScreen" style="display:none">
+  <div class="conf-screen">
+    <div class="conf-icon">🎉</div>
+    <h2>¡Reserva Confirmada!</h2>
+    <p style="color:var(--muted);font-size:14px">Tu número de reserva es:</p>
+    <div class="conf-id" id="confId">—</div>
+    <div class="conf-details" id="confDetails"></div>
+    <div class="conf-warning">
+      ⚠️ <strong>Importante:</strong> Si no se realiza el pago de la reserva y se envía el comprobante, se dará por cancelada la reserva y se tendrá que reagendar nuevamente.
+    </div>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:20px">Recibirás un correo de confirmación con todos los detalles.</p>
+    <button class="btn-gold" onclick="resetBooking()">Hacer otra reserva</button>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-overlay" id="adminOverlay">
+  <div class="admin-head">
+    <h2>💅 Panel Admin</h2>
+    <button class="modal-close" onclick="closeAdmin()">&times;</button>
+  </div>
+  <div class="admin-body" id="adminBody">
+    <!-- Login or content -->
+  </div>
+</div>
+
+<!-- TERMS MODAL -->
+<div class="terms-modal" id="termsModal">
+  <div class="terms-box">
+    <h3>Términos y Condiciones</h3>
+    <p><strong>Belleza Integral — Salón de Liz</strong></p>
+    <p>Santiago Centro, Santiago de Chile</p>
+    <ol>
+      <li><strong>Reservas:</strong> Toda reserva requiere confirmación mediante pago parcial o total. Si no se realiza el pago y se envía el comprobante, la reserva se dará por cancelada automáticamente.</li>
+      <li><strong>Cancelaciones:</strong> Las cancelaciones realizadas con más de 48 horas de anticipación recibirán un reembolso. Cancelaciones con menos de 48 horas de anticipación perderán el valor abonado.</li>
+      <li><strong>Reagendamiento:</strong> Solo se permite reagendar con más de 48 horas de anticipación. De lo contrario, se pierde el valor abonado y se deberá realizar una nueva reserva.</li>
+      <li><strong>Puntualidad:</strong> Se recomienda llegar con 10-15 minutos de anticipación. Atrasos superiores a 15 minutos pueden resultar en la cancelación del turno.</li>
+      <li><strong>Datos personales:</strong> Los datos proporcionados (nombre, teléfono, email) se utilizarán exclusivamente para la gestión de citas y comunicación del salón.</li>
+      <li><strong>Domingos y feriados:</strong> Se requiere un adelanto del 50% del valor del servicio para reservas en domingos y feriados.</li>
+    </ol>
+    <p>Al confirmar tu reserva, aceptas todos los términos y condiciones aquí descritos.</p>
+    <button class="btn-gold close-terms" onclick="closeTerms()">Entendido</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- Scripts -->
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
