@@ -357,6 +357,11 @@ async function submitBooking() {
   closeModal();
   showConfirmation(reserva);
   showToast('¡Reserva confirmada! 🎉','success');
+
+  // Actualizar slots después de reservar para bloquear hora seleccionada
+  if (state.selFecha && state.selServicio) {
+    await renderSlots();
+  }
 }
 
 function showConfirmation(r) {
