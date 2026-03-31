@@ -1,482 +1,386 @@
-// ═══════════════════════════════════════════════════════════════
-// BELLEZA INTEGRAL — App Logic  (V8)
-// Fixes: real availability from API, conflict handling, auto-refresh
-// ═══════════════════════════════════════════════════════════════
+/* ================================================================
+   BARBERÍA PRO — js/app.js  (v2 — fixes selección + logo)
+   ================================================================ */
 
-// ── CONFIG ────────────────────────────────────────────
-const CONFIG = {
-  nombre: "Belleza Integral",
-  duena: "Liz",
-  whatsapp: "+56964364128",
-  instagram: "https://www.instagram.com/bellezaintegral.liz?igsh=MWNua2d1d2R3aW83bA==",
-  direccion: "Santiago Centro, Santiago de Chile"
+const state = {
+  servicios:    [],
+  empleados:    [],
+  servicioSel:  null,
+  slotSel:      null,
+  fechaSel:     null,
+  disponibilidad: {}
 };
 
-// ── DEMO SERVICES DATA ────────────────────────────────
-const SERVICIOS = [
-  { id:'s1', nombre:'Corte Profesional', cat:'pelu', desc:'Estilo personalizado con productos premium.', dur:45, precio:15000, img:'', icon:'✂️' },
-  { id:'s2', nombre:'Peinado Evento', cat:'pelu', desc:'Look espectacular para ocasiones especiales.', dur:60, precio:25000, img:'', icon:'👰' },
-  { id:'s3', nombre:'Coloración', cat:'pelu', desc:'Tonos vibrantes con técnicas de vanguardia.', dur:90, precio:35000, img:'', icon:'🎨' },
-  { id:'s4', nombre:'Alisado & Botox Capilar', cat:'pelu', desc:'Cabello liso, sedoso y restaurado.', dur:120, precio:45000, img:'', icon:'🌊' },
-  { id:'s5', nombre:'Masaje Capilar', cat:'pelu', desc:'Relax y nutrición para tu cuero cabelludo.', dur:30, precio:12000, img:'', icon:'💆' },
-  { id:'s6', nombre:'Lavado Premium', cat:'pelu', desc:'Limpieza profunda con productos de alta gama.', dur:30, precio:8000, img:'', icon:'💧' },
-  { id:'s7', nombre:'Manicure', cat:'unas', desc:'Cuidado completo y diseños personalizados.', dur:45, precio:12000, img:'', icon:'💅' },
-  { id:'s8', nombre:'Manicure Permanente', cat:'unas', desc:'Esmalte que dura 14+ días sin dañar.', dur:60, precio:18000, img:'', icon:'✨' },
-  { id:'s9', nombre:'Diseños Artísticos', cat:'unas', desc:'Nail art único que expresa tu estilo.', dur:75, precio:22000, img:'', icon:'🎀' }
-];
-
-// ── STATE ─────────────────────────────────────────────
-let state = {
-  selServicio: null,
-  selFecha: null,
-  selHora: null,
-  calDate: new Date(),
-  adminLogged: false,
-  slotsLoading: false,
-  reservas: []
-};
-
-// ── INIT ──────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  setTimeout(() => document.getElementById('pageLoader').classList.add('hidden'), 1200);
-
-  window.addEventListener('scroll', () => {
-    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
-  });
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.15 });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-  // Load services from API
+  aplicarLogo();
+  mostrarLoader(true, 'Cargando servicios…');
   try {
-    const response = await API.getServicios();
-    if (response.ok && response.servicios) {
-      SERVICIOS.length = 0;
-      SERVICIOS.push(...response.servicios);
-    }
+    const [srv, emp] = await Promise.all([API.getServicios(), API.getEmpleados()]);
+    state.servicios = Array.isArray(srv) ? srv : [];
+    state.empleados = Array.isArray(emp) ? emp : [];
+    renderServicios();
+    renderEmpleadosFiltro();
   } catch(e) {
-    console.log('Using demo services data');
+    mostrarError('Error al cargar datos. Recarga la página.');
+  } finally {
+    mostrarLoader(false);
   }
-
-  // Load config and update logo
-  try {
-    const configResponse = await API.getConfig();
-    if (configResponse.ok && configResponse.config) {
-      updateLogo(configResponse.config.logoUrl);
-    }
-  } catch(e) {
-    console.log('Using default config');
-  }
-
-  renderServiceCards();
-  renderServicePicker();
-  renderCalendar();
-
-  document.getElementById('fTerms').addEventListener('change', (e) => {
-    document.getElementById('btnConfirm').disabled = !e.target.checked;
-  });
+  renderCalendario('calendario');
+  escucharEventos();
 });
 
-// ── MENU TOGGLE ───────────────────────────────────────
-function toggleMenu() {
-  document.getElementById('navLinks').classList.toggle('open');
-}
-
-// ── RENDER SERVICE CARDS ──────────────────────────────
-function renderServiceCards() {
-  const pelu = SERVICIOS.filter(s => s.cat === 'pelu');
-  const unas = SERVICIOS.filter(s => s.cat === 'unas');
-
-  document.getElementById('serviciosPelu').innerHTML = pelu.map(s => serviceCardHTML(s)).join('');
-  document.getElementById('serviciosUnas').innerHTML = unas.map(s => serviceCardHTML(s)).join('');
-
-  document.querySelectorAll('.servicio-card').forEach((card, i) => {
-    card.classList.add('reveal');
-    card.style.transitionDelay = `${i * .08}s`;
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-    }, { threshold: 0.1 });
-    observer.observe(card);
+// ── LOGO ──────────────────────────────────────────────────────
+function aplicarLogo() {
+  if (!LOGO_URL) return;
+  // Navbar
+  const navLogo = document.getElementById('nav-logo');
+  if (navLogo) {
+    navLogo.innerHTML = `<img src="${LOGO_URL}" alt="${NEGOCIO_NOMBRE}"
+      style="height:38px;width:38px;border-radius:50%;object-fit:cover;border:2px solid var(--gold)">`;
+  }
+  // Sidebar info y footer
+  ['sidebar-logo','footer-logo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `<img src="${LOGO_URL}" alt="${NEGOCIO_NOMBRE}"
+      style="height:52px;border-radius:10px;object-fit:contain">`;
   });
 }
 
-function serviceCardHTML(s) {
-  const durStr = s.dur >= 60 ? `${Math.floor(s.dur/60)}h${s.dur%60 ? ' '+s.dur%60+'m':''}` : `${s.dur} min`;
-  const imgHTML = s.img
-    ? `<img src="${s.img}" alt="${s.nombre}">`
-    : `<div class="placeholder-icon">${s.icon}</div>`;
-  return `
-    <div class="servicio-card" onclick="pickService('${s.id}')">
-      <div class="servicio-card-img">${imgHTML}</div>
-      <div class="servicio-card-body">
-        <h4>${s.nombre}</h4>
-        <p>${s.desc}</p>
-        <div class="servicio-card-meta">
-          <span class="dur">⏱ ${durStr}</span>
-          <span class="price">$${s.precio.toLocaleString('es-CL')}</span>
-        </div>
-      </div>
-    </div>`;
-}
+// ── SERVICIOS ─────────────────────────────────────────────────
+function renderServicios() {
+  const cont = document.getElementById('servicios-grid');
+  if (!cont) return;
 
-// ── SERVICE PICKER (in booking section) ───────────────
-function renderServicePicker() {
-  const grid = document.getElementById('srvPicker');
-  grid.innerHTML = SERVICIOS.map(s => {
-    const active = state.selServicio?.id === s.id ? 'active' : '';
-    const durStr = s.dur >= 60 ? `${Math.floor(s.dur/60)}h${s.dur%60?s.dur%60+'m':''}` : `${s.dur}min`;
-    return `<div class="srv-mini ${active}" onclick="pickService('${s.id}')">
-      <div class="name">${s.icon} ${s.nombre}</div>
-      <div class="meta">${durStr} · <span class="price">$${s.precio.toLocaleString('es-CL')}</span></div>
-    </div>`;
-  }).join('');
-}
-
-function pickService(id) {
-  state.selServicio = SERVICIOS.find(s => s.id === id);
-  state.selHora = null;
-  renderServicePicker();
-  updateSidebar();
-  if (state.selFecha) renderSlots();
-  document.getElementById('reservar').scrollIntoView({ behavior: 'smooth' });
-}
-
-// ── CALENDAR ──────────────────────────────────────────
-const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-
-function renderCalendar() {
-  const d = state.calDate;
-  const y = d.getFullYear(), m = d.getMonth();
-  document.getElementById('calMonth').textContent = `${MESES[m]} ${y}`;
-
-  const grid = document.getElementById('calGrid');
-  let html = DIAS.map(d => `<div class="cal-head">${d}</div>`).join('');
-
-  const firstDay = new Date(y, m, 1).getDay();
-  for (let i = 0; i < firstDay; i++) html += '<div></div>';
-
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const daysInMonth = new Date(y, m+1, 0).getDate();
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(y, m, day);
-    const isPast = date < today;
-    const isSun = date.getDay() === 0;
-    const isSelected = state.selFecha && state.selFecha.getTime() === date.getTime();
-    const isToday = date.getTime() === today.getTime();
-
-    let cls = 'cal-day';
-    if (isPast || isSun) cls += ' disabled';
-    if (isSelected) cls += ' selected';
-    if (isToday) cls += ' today';
-
-    const onclick = (isPast || isSun) ? '' : `onclick="pickDate(${y},${m},${day})"`;
-    html += `<div class="${cls}" ${onclick}>${day}</div>`;
-  }
-  grid.innerHTML = html;
-}
-
-function changeMonth(dir) {
-  state.calDate = new Date(state.calDate.getFullYear(), state.calDate.getMonth() + dir, 1);
-  renderCalendar();
-}
-
-function pickDate(y, m, d) {
-  state.selFecha = new Date(y, m, d);
-  state.selHora = null;
-  renderCalendar();
-
-  const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
-  const str = state.selFecha.toLocaleDateString('es-CL', opts);
-  document.getElementById('fechaDisplay').textContent = '✓ ' + str.charAt(0).toUpperCase() + str.slice(1);
-
-  if (state.selServicio) renderSlots();
-  updateSidebar();
-}
-
-// ── SLOTS — Fetches real availability from API ────────
-async function renderSlots() {
-  const grid = document.getElementById('slotsGrid');
-  if (!state.selServicio || !state.selFecha) {
-    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--muted);padding:20px;font-size:14px">Selecciona servicio y fecha</p>';
+  if (!state.servicios.length) {
+    cont.innerHTML = '<p style="color:var(--hint);padding:20px;text-align:center">Sin servicios disponibles</p>';
     return;
   }
 
-  // Show loading state
-  state.slotsLoading = true;
-  grid.innerHTML = `
-    <div style="grid-column:1/-1;text-align:center;padding:32px">
-      <div style="display:inline-block;width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite"></div>
-      <p style="color:var(--muted);font-size:13px;margin-top:10px">Consultando disponibilidad...</p>
-    </div>`;
+  // Agrupar por categoría
+  const cats = {};
+  state.servicios.forEach(s => {
+    if (!cats[s.categoria]) cats[s.categoria] = [];
+    cats[s.categoria].push(s);
+  });
 
-  const fechaStr = `${state.selFecha.getFullYear()}-${String(state.selFecha.getMonth()+1).padStart(2,'0')}-${String(state.selFecha.getDate()).padStart(2,'0')}`;
+  let html = '';
+  Object.entries(cats).forEach(([cat, svs]) => {
+    html += `<div class="srv-categoria">
+      <h3 class="srv-cat-titulo">${cat}</h3>
+      <div class="srv-lista">`;
 
-  try {
-    // Usar empleado por defecto "EMP001" (Liz)
-    const response = await API.getDisponibilidad(fechaStr, "EMP001");
-    state.slotsLoading = false;
+    svs.forEach(s => {
+      const durStr = s.duracion >= 60
+        ? `${Math.floor(s.duracion/60)}h${s.duracion%60 ? ' '+s.duracion%60+'min':''}`
+        : `${s.duracion} min`;
+      const esSel  = state.servicioSel && state.servicioSel.id === s.id;
+      const sesTag = s.esSesion
+        ? `<span class="srv-sesion">📅 ${s.maxSesiones} sesiones</span>` : '';
+      const skTag  = s.requiereSkill
+        ? `<span class="srv-skill">${s.requiereSkill}</span>` : '';
 
-    if (response.ok && response.libres) {
-      const slots = response.libres;
+      html += `
+        <div class="srv-card ${esSel ? 'srv-card--sel' : ''}"
+             onclick="seleccionarServicio('${s.id}')">
+          <div class="srv-card-info">
+            <div class="srv-card-nombre">${s.nombre} ${sesTag} ${skTag}</div>
+            <div class="srv-card-detalles">
+              <span class="srv-duracion">⏱ ${durStr}</span>
+              <span class="srv-precio">$${s.precio.toLocaleString('es-CL')}</span>
+            </div>
+          </div>
+          <div class="srv-card-check ${esSel ? 'activo' : ''}">✓</div>
+        </div>`;
+    });
+    html += '</div></div>';
+  });
 
-      if (slots.length === 0) {
-        grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--muted);padding:24px;font-size:14px">😔 No hay horarios disponibles para esta fecha. Prueba otro día.</p>';
-        return;
-      }
-
-      grid.innerHTML = slots.map(s => {
-        const active = state.selHora === s ? 'active' : '';
-        return `<div class="slot ${active}" onclick="pickSlot('${s}')">${s}</div>`;
-      }).join('');
-      return;
-    }
-  } catch(e) {
-    console.log('API unavailable, generating demo slots');
-    state.slotsLoading = false;
-  }
-
-  // Fallback to demo slots only if API is not available
-  const isSat = state.selFecha.getDay() === 6;
-  const endHour = isSat ? 14 : 20;
-  const slots = [];
-  for (let h = 9; h < endHour; h++) {
-    slots.push(`${String(h).padStart(2,'0')}:00`);
-    if (h < endHour - 1 || (h === endHour - 1 && !isSat)) {
-      slots.push(`${String(h).padStart(2,'0')}:30`);
-    }
-  }
-
-  const seed = state.selFecha.getDate();
-  const available = slots.filter((_, i) => (i * seed + 3) % 5 !== 0);
-
-  grid.innerHTML = available.map(s => {
-    const active = state.selHora === s ? 'active' : '';
-    return `<div class="slot ${active}" onclick="pickSlot('${s}')">${s}</div>`;
-  }).join('');
-}
-
-function pickSlot(hora) {
-  state.selHora = hora;
-  renderSlots();
-  updateSidebar();
-}
-
-// ── SIDEBAR ───────────────────────────────────────────
-function updateSidebar() {
-  const cont = document.getElementById('sideResumen');
-  if (!state.selServicio) {
-    cont.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:16px">Selecciona un servicio para comenzar</p>';
-    return;
-  }
-
-  const s = state.selServicio;
-  const durStr = s.dur >= 60 ? `${Math.floor(s.dur/60)}h${s.dur%60?' '+s.dur%60+'m':''}` : `${s.dur} min`;
-  let html = `
-    <div class="resumen-item"><span>Servicio</span><strong>${s.nombre}</strong></div>
-    <div class="resumen-item"><span>Duración</span><strong>${durStr}</strong></div>
-    <div class="resumen-item"><span>Precio</span><strong style="color:var(--gold)">$${s.precio.toLocaleString('es-CL')}</strong></div>`;
-
-  if (state.selFecha) {
-    const opts = { weekday:'short', month:'short', day:'numeric' };
-    html += `<div class="resumen-item"><span>Fecha</span><strong>${state.selFecha.toLocaleDateString('es-CL',opts)}</strong></div>`;
-  }
-  if (state.selHora) {
-    html += `<div class="resumen-item"><span>Hora</span><strong>${state.selHora}</strong></div>`;
-    html += `<button class="btn-gold" style="width:100%;margin-top:14px;justify-content:center" onclick="openBookingModal()">✅ Confirmar Reserva</button>`;
-  }
   cont.innerHTML = html;
 }
 
-// ── BOOKING MODAL ─────────────────────────────────────
-function openBookingModal() {
-  if (!state.selServicio || !state.selFecha || !state.selHora) {
-    showToast('Selecciona servicio, fecha y hora', 'error');
+// FIX: función de selección reescrita — actualiza estado y re-renderiza todo
+function seleccionarServicio(servicioID) {
+  const srv = state.servicios.find(s => s.id === servicioID);
+  if (!srv) return;
+
+  state.servicioSel = srv;
+  state.slotSel     = null; // resetear slot al cambiar servicio
+
+  // Re-renderizar tarjetas para mostrar el check correcto
+  renderServicios();
+
+  // Si ya hay fecha seleccionada, cargar disponibilidad
+  if (state.fechaSel) cargarDisponibilidad();
+
+  // Actualizar resumen lateral
+  actualizarResumen();
+
+  // Scroll suave al paso de fecha
+  document.getElementById('paso-fecha')
+    ?.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ── FILTRO EMPLEADOS ──────────────────────────────────────────
+function renderEmpleadosFiltro() {
+  const cont = document.getElementById('empleados-filtro');
+  if (!cont) return;
+
+  let html = `<button class="emp-filtro-btn emp-filtro-btn--all activo"
+    onclick="filtrarEmpleado(null,this)">Todos</button>`;
+  state.empleados.forEach(e => {
+    html += `<button class="emp-filtro-btn" style="border-color:${e.color}"
+      onclick="filtrarEmpleado('${e.id}',this)">${e.nombre}</button>`;
+  });
+  cont.innerHTML = html;
+}
+
+let filtroEmpActivo = null;
+
+function filtrarEmpleado(empID, btn) {
+  document.querySelectorAll('.emp-filtro-btn').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+  filtroEmpActivo = empID;
+  renderSlotsActuales();
+}
+
+// ── DISPONIBILIDAD ────────────────────────────────────────────
+async function cargarDisponibilidad() {
+  if (!state.servicioSel || !state.fechaSel) return;
+
+  mostrarLoader(true, 'Buscando horarios disponibles…');
+  try {
+    const data = await API.getDisponibilidad(state.fechaSel, state.servicioSel.id);
+    state.disponibilidad = (data && data.empleados) ? data.empleados : {};
+    renderSlotsActuales();
+  } catch(e) {
+    mostrarError('Error al cargar disponibilidad.');
+    state.disponibilidad = {};
+    renderSlotsActuales();
+  } finally {
+    mostrarLoader(false);
+  }
+}
+
+function renderSlotsActuales() {
+  let empleados = { ...state.disponibilidad };
+  if (filtroEmpActivo && empleados[filtroEmpActivo]) {
+    empleados = { [filtroEmpActivo]: empleados[filtroEmpActivo] };
+  } else if (filtroEmpActivo) {
+    empleados = {};
+  }
+  renderSlots('slots-container', empleados);
+}
+
+// ── EVENTOS ───────────────────────────────────────────────────
+function escucharEventos() {
+  document.addEventListener('fechaSeleccionada', e => {
+    state.fechaSel = e.detail.fecha;
+    state.slotSel  = null;
+
+    const el = document.getElementById('fecha-display');
+    if (el) el.textContent = _formatFecha(state.fechaSel);
+
+    actualizarResumen();
+    if (state.servicioSel) cargarDisponibilidad();
+    else mostrarError('Selecciona un servicio primero.');
+  });
+
+  document.addEventListener('slotSeleccionado', e => {
+    const { empleadoID, empleadoNombre, horaInicio, horaFin } = e.detail;
+    state.slotSel = { empleadoID, empleadoNombre, horaInicio, horaFin };
+    filtroEmpActivo = empleadoID;
+    actualizarResumen();
+    abrirModalReserva();
+  });
+}
+
+// ── RESUMEN LATERAL — FIX: botón aparece cuando hay servicio+fecha+slot ──
+function actualizarResumen() {
+  const el = document.getElementById('resumen-seleccion');
+  if (!el) return;
+
+  if (!state.servicioSel && !state.fechaSel) {
+    el.innerHTML = '<p class="resumen-placeholder">Selecciona un servicio y fecha para continuar.</p>';
     return;
   }
-  const s = state.selServicio;
-  const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
-  const fechaStr = state.selFecha.toLocaleDateString('es-CL', opts);
 
-  document.getElementById('modalSummary').innerHTML = `
-    <div class="row"><span>Servicio</span><strong>${s.nombre}</strong></div>
-    <div class="row"><span>Fecha</span><strong>${fechaStr.charAt(0).toUpperCase()+fechaStr.slice(1)}</strong></div>
-    <div class="row"><span>Hora</span><strong>${state.selHora}</strong></div>
-    <div class="row"><span>Precio</span><strong style="color:var(--gold)">$${s.precio.toLocaleString('es-CL')}</strong></div>`;
+  let html = '<div class="resumen-items">';
 
-  document.getElementById('fTerms').checked = false;
-  document.getElementById('btnConfirm').disabled = true;
-  document.getElementById('bookingModal').classList.add('open');
-}
-
-function closeModal() {
-  document.getElementById('bookingModal').classList.remove('open');
-}
-
-// ── SUBMIT BOOKING — With conflict handling ───────────
-async function submitBooking() {
-  const nombre = document.getElementById('fNombre').value.trim();
-  const tel = document.getElementById('fTel').value.trim();
-  const email = document.getElementById('fEmail').value.trim();
-  const notas = document.getElementById('fNotas').value.trim();
-
-  if (!nombre) return showToast('Ingresa tu nombre','error');
-  if (!tel || tel.length < 9) return showToast('Ingresa un teléfono válido','error');
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showToast('Ingresa un email válido','error');
-  if (!document.getElementById('fTerms').checked) return showToast('Debes aceptar los términos','error');
-
-  // Disable button and show loading
-  const btn = document.getElementById('btnConfirm');
-  btn.disabled = true;
-  btn.textContent = '⏳ Procesando...';
-
-  const fechaStr = `${state.selFecha.getFullYear()}-${String(state.selFecha.getMonth()+1).padStart(2,'0')}-${String(state.selFecha.getDate()).padStart(2,'0')}`;
-
-  try {
-    // Usar estructura completa con crearReservaJSON
-    const response = await API.crearReservaJSON({
-      cliente: nombre,
-      email: email,
-      telefono: tel,
-      servicioId: state.selServicio.id,
-      servicio: state.selServicio.nombre,
-      empleadoId: "EMP001",
-      empleadoNombre: "Liz",
-      fecha: fechaStr,
-      horaInicio: state.selHora,
-      duracionMin: state.selServicio.dur || 30,
-      precio: state.selServicio.precio || 0,
-      notas: notas || ""
-    });
-
-    if (response.ok) {
-      const reserva = {
-        id: response.reservaId || response.id,
-        nombre,
-        servicio: state.selServicio.nombre,
-        fecha: fechaStr,
-        hora: state.selHora,
-        estado: 'Confirmada'
-      };
-
-      closeModal();
-      showConfirmation(reserva);
-      showToast('¡Reserva confirmada! Revisa tu correo 📧🎉', 'success');
-    } else {
-      // CONFLICT HANDLING: If slot was taken by someone else
-      if (response.conflicto) {
-        showToast('⚠️ Ese horario acaba de ser reservado. Actualizando horarios...', 'error');
-        closeModal();
-        // Re-fetch available slots to show updated availability
-        await renderSlots();
-        state.selHora = null;
-        updateSidebar();
-      } else {
-        showToast(response.error || response.mensaje || 'Error al crear reserva', 'error');
-      }
-    }
-  } catch(e) {
-    console.error('Error en submitBooking:', e);
-    // Fallback demo mode
-    const resId = 'RES-' + Math.random().toString(36).substring(2,10).toUpperCase();
-    const reserva = {
-      id: resId, nombre,
-      servicio: state.selServicio.nombre,
-      fecha: fechaStr,
-      hora: state.selHora,
-      estado: 'Confirmada'
-    };
-    closeModal();
-    showConfirmation(reserva);
-    showToast('¡Reserva confirmada (demo)! 🎉', 'success');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '✅ Confirmar Reserva';
+  if (state.servicioSel) {
+    html += `
+      <div class="resumen-item"><span>✨ Servicio</span><strong>${state.servicioSel.nombre}</strong></div>
+      <div class="resumen-item"><span>⏱ Duración</span><strong>${state.servicioSel.duracion} min</strong></div>
+      <div class="resumen-item"><span>💰 Precio</span><strong>$${state.servicioSel.precio.toLocaleString('es-CL')}</strong></div>`;
   }
-}
-
-function showConfirmation(r) {
-  document.getElementById('reservasMain').parentElement.parentElement.style.display = 'none';
-  document.getElementById('confScreen').style.display = 'block';
-  document.getElementById('confId').textContent = r.id;
-
-  const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
-  const fecha = new Date(r.fecha + 'T12:00:00');
-  const fechaStr = fecha.toLocaleDateString('es-CL', opts);
-
-  document.getElementById('confDetails').innerHTML = `
-    <div class="row"><span>Cliente</span><strong>${r.nombre}</strong></div>
-    <div class="row"><span>Servicio</span><strong>${r.servicio}</strong></div>
-    <div class="row"><span>Fecha</span><strong>${fechaStr.charAt(0).toUpperCase()+fechaStr.slice(1)}</strong></div>
-    <div class="row"><span>Hora</span><strong>${r.hora}</strong></div>`;
-
-  document.getElementById('confScreen').scrollIntoView({ behavior: 'smooth' });
-}
-
-function resetBooking() {
-  state.selServicio = null;
-  state.selFecha = null;
-  state.selHora = null;
-
-  document.getElementById('fNombre').value = '';
-  document.getElementById('fTel').value = '';
-  document.getElementById('fEmail').value = '';
-  document.getElementById('fNotas').value = '';
-
-  document.getElementById('confScreen').style.display = 'none';
-  const sec = document.querySelector('.reservas-section');
-  sec.style.display = '';
-
-  renderServicePicker();
-  renderCalendar();
-  renderSlots();
-  updateSidebar();
-  document.getElementById('fechaDisplay').textContent = '';
-  document.getElementById('reservar').scrollIntoView({ behavior: 'smooth' });
-}
-
-// ── TERMS ─────────────────────────────────────────────
-function openTerms() { document.getElementById('termsModal').classList.add('open'); }
-function closeTerms() { document.getElementById('termsModal').classList.remove('open'); }
-
-// ── TOAST ─────────────────────────────────────────────
-function showToast(msg, type='error') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + type + ' show';
-  setTimeout(() => t.classList.remove('show'), 4000);
-}
-
-// ── LOGO UPDATE ────────────────────────────────────────
-function updateLogo(logoUrl) {
-  if (logoUrl) {
-    const navBrand = document.querySelector('.nav-brand');
-    if (navBrand) {
-      navBrand.innerHTML = `
-        <img src="${logoUrl}" alt="Logo" style="height: 32px; margin-right: 8px; vertical-align: middle;">
-        <span class="dot"></span> Belleza Integral
-      `;
-    }
+  if (state.fechaSel) {
+    html += `<div class="resumen-item"><span>📅 Fecha</span><strong>${_formatFecha(state.fechaSel)}</strong></div>`;
   }
+  if (state.slotSel) {
+    html += `
+      <div class="resumen-item"><span>🕐 Hora</span><strong>${state.slotSel.horaInicio}</strong></div>
+      <div class="resumen-item"><span>💆 Especialista</span><strong>${state.slotSel.empleadoNombre}</strong></div>`;
+  }
+
+  html += '</div>';
+
+  // FIX: mostrar botón cuando hay servicio + fecha + slot seleccionados
+  if (state.servicioSel && state.fechaSel && state.slotSel) {
+    html += `<button class="btn-reservar" onclick="abrirModalReserva()">
+      Confirmar Reserva →
+    </button>`;
+  } else if (state.servicioSel && state.fechaSel && !state.slotSel) {
+    html += `<p style="font-size:12px;color:var(--hint);margin-top:12px;text-align:center">
+      👆 Elige un horario disponible arriba
+    </p>`;
+  }
+
+  el.innerHTML = html;
 }
 
-// ── ESC KEY HANDLERS ──────────────────────────────────
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    closeModal();
-    closeTerms();
+// ── MODAL ─────────────────────────────────────────────────────
+function abrirModalReserva() {
+  if (!state.servicioSel || !state.fechaSel || !state.slotSel) {
+    mostrarError('Selecciona servicio, fecha y hora primero.');
+    return;
   }
-});
 
-['bookingModal','termsModal'].forEach(id => {
-  document.getElementById(id)?.addEventListener('click', (e) => {
-    if (e.target === document.getElementById(id)) {
-      if (id === 'bookingModal') closeModal();
-      else closeTerms();
+  document.getElementById('modal-srv').textContent     = state.servicioSel.nombre;
+  document.getElementById('modal-barbero').textContent = state.slotSel.empleadoNombre;
+  document.getElementById('modal-fecha').textContent   = _formatFecha(state.fechaSel);
+  document.getElementById('modal-hora').textContent    = `${state.slotSel.horaInicio} — ${state.slotSel.horaFin}`;
+  document.getElementById('modal-precio').textContent  = `$${state.servicioSel.precio.toLocaleString('es-CL')} CLP`;
+
+  const sesionGroup = document.getElementById('sesion-group');
+  if (state.servicioSel.esSesion && sesionGroup) {
+    sesionGroup.style.display = 'block';
+    const sel = document.getElementById('sesion-num');
+    sel.innerHTML = '';
+    for (let i = 1; i <= state.servicioSel.maxSesiones; i++) {
+      sel.innerHTML += `<option value="${i}">Sesión ${i} de ${state.servicioSel.maxSesiones}</option>`;
     }
+  } else if (sesionGroup) {
+    sesionGroup.style.display = 'none';
+  }
+
+  // Limpiar formulario
+  ['inp-nombre','inp-email','inp-tel','inp-notas'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  document.getElementById('modal-reserva').classList.add('open');
+}
+
+function cerrarModal() {
+  document.getElementById('modal-reserva').classList.remove('open');
+}
+
+// Cerrar modal al hacer click fuera
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('modal-reserva')?.addEventListener('click', function(e) {
+    if (e.target === this) cerrarModal();
   });
 });
+
+// ── CONFIRMAR RESERVA ─────────────────────────────────────────
+async function confirmarReserva() {
+  const nombre = document.getElementById('inp-nombre')?.value.trim();
+  const email  = document.getElementById('inp-email')?.value.trim();
+  const tel    = document.getElementById('inp-tel')?.value.trim();
+  const notas  = document.getElementById('inp-notas')?.value.trim();
+  const sesion = document.getElementById('sesion-num')?.value || 1;
+
+  if (!nombre || nombre.length < 2) { mostrarError('Ingresa tu nombre completo.'); return; }
+  if (!email  || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { mostrarError('Email inválido.'); return; }
+
+  const payload = {
+    nombre, email,
+    telefono:   tel || '',
+    servicioID: state.servicioSel.id,
+    empleadoID: state.slotSel.empleadoID,
+    fecha:      state.fechaSel,
+    horaInicio: state.slotSel.horaInicio,
+    notas:      notas || '',
+    sesionNum:  parseInt(sesion)
+  };
+
+  mostrarLoader(true, 'Confirmando tu reserva…');
+  try {
+    const res = await API.crearReserva(payload);
+    mostrarLoader(false);
+
+    if (res.ok) {
+      cerrarModal();
+      mostrarConfirmacion(res.reservaID, res.reserva);
+      // Recargar disponibilidad para bloquear el slot
+      cargarDisponibilidad();
+    } else {
+      mostrarError(res.error || 'Error al crear la reserva. Intenta de nuevo.');
+    }
+  } catch(e) {
+    mostrarLoader(false);
+    mostrarError('Error de conexión. Intenta de nuevo.');
+  }
+}
+
+// ── CONFIRMACIÓN ──────────────────────────────────────────────
+function mostrarConfirmacion(reservaID, reserva) {
+  const reservasScreen = document.getElementById('reservas-screen');
+  const confScreen     = document.getElementById('confirmacion-screen');
+  if (!confScreen) return;
+
+  if (reservasScreen) reservasScreen.style.display = 'none';
+  confScreen.style.display = 'block';
+
+  document.getElementById('conf-id').textContent      = reservaID;
+  document.getElementById('conf-nombre').textContent  = reserva?.nombre || '';
+  document.getElementById('conf-srv').textContent     = reserva?.servicioNombre || '';
+  document.getElementById('conf-barbero').textContent = reserva?.empleadoNombre || '';
+  document.getElementById('conf-fecha').textContent   = _formatFecha(reserva?.fecha) || '';
+  document.getElementById('conf-hora').textContent    = reserva?.horaInicio || '';
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nuevaReserva() {
+  const reservasScreen = document.getElementById('reservas-screen');
+  const confScreen     = document.getElementById('confirmacion-screen');
+  if (reservasScreen) reservasScreen.style.display = 'block';
+  if (confScreen)     confScreen.style.display = 'none';
+
+  // Reset estado
+  state.slotSel    = null;
+  state.fechaSel   = null;
+  state.servicioSel= null;
+  filtroEmpActivo  = null;
+  actualizarResumen();
+  renderServicios();
+  renderCalendario('calendario');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function mostrarLoader(show, txt) {
+  const el = document.getElementById('loader');
+  if (!el) return;
+  el.style.display = show ? 'flex' : 'none';
+  const txtEl = document.getElementById('loader-txt');
+  if (txtEl && txt) txtEl.textContent = txt;
+}
+
+function mostrarError(msg) {
+  const el = document.getElementById('toast-error');
+  if (!el) return;
+  el.textContent = '❌ ' + msg;
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 4000);
+}
+
+function _formatFecha(str) {
+  if (!str) return '';
+  const dias  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio',
+                 'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const f = new Date(str + 'T12:00:00');
+  return `${dias[f.getDay()]} ${f.getDate()} de ${meses[f.getMonth()]} ${f.getFullYear()}`;
+}
