@@ -1,5 +1,6 @@
 // ═══════════════════════════════════════════════════════════════
-// BELLEZA INTEGRAL — App Logic
+// BELLEZA INTEGRAL — App Logic  (V8)
+// Fixes: real availability from API, conflict handling, auto-refresh
 // ═══════════════════════════════════════════════════════════════
 
 // ── CONFIG ────────────────────────────────────────────
@@ -13,14 +14,12 @@ const CONFIG = {
 
 // ── DEMO SERVICES DATA ────────────────────────────────
 const SERVICIOS = [
-  // Peluquería
   { id:'s1', nombre:'Corte Profesional', cat:'pelu', desc:'Estilo personalizado con productos premium.', dur:45, precio:15000, img:'', icon:'✂️' },
   { id:'s2', nombre:'Peinado Evento', cat:'pelu', desc:'Look espectacular para ocasiones especiales.', dur:60, precio:25000, img:'', icon:'👰' },
   { id:'s3', nombre:'Coloración', cat:'pelu', desc:'Tonos vibrantes con técnicas de vanguardia.', dur:90, precio:35000, img:'', icon:'🎨' },
   { id:'s4', nombre:'Alisado & Botox Capilar', cat:'pelu', desc:'Cabello liso, sedoso y restaurado.', dur:120, precio:45000, img:'', icon:'🌊' },
   { id:'s5', nombre:'Masaje Capilar', cat:'pelu', desc:'Relax y nutrición para tu cuero cabelludo.', dur:30, precio:12000, img:'', icon:'💆' },
   { id:'s6', nombre:'Lavado Premium', cat:'pelu', desc:'Limpieza profunda con productos de alta gama.', dur:30, precio:8000, img:'', icon:'💧' },
-  // Uñas
   { id:'s7', nombre:'Manicure', cat:'unas', desc:'Cuidado completo y diseños personalizados.', dur:45, precio:12000, img:'', icon:'💅' },
   { id:'s8', nombre:'Manicure Permanente', cat:'unas', desc:'Esmalte que dura 14+ días sin dañar.', dur:60, precio:18000, img:'', icon:'✨' },
   { id:'s9', nombre:'Diseños Artísticos', cat:'unas', desc:'Nail art único que expresa tu estilo.', dur:75, precio:22000, img:'', icon:'🎀' }
@@ -33,33 +32,27 @@ let state = {
   selHora: null,
   calDate: new Date(),
   adminLogged: false,
-  reservas: [
-    { id:'RES-A1B2C3D4', nombre:'María González', email:'maria@email.com', tel:'+56912345678', servicio:'Manicure Permanente', fecha:'2026-04-01', hora:'14:00', estado:'Confirmada' },
-    { id:'RES-E5F6G7H8', nombre:'Ana López', email:'ana@email.com', tel:'+56987654321', servicio:'Coloración', fecha:'2026-04-02', hora:'10:00', estado:'Pendiente' },
-  ]
+  slotsLoading: false,
+  reservas: []
 };
 
 // ── INIT ──────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // Simulate loading
   setTimeout(() => document.getElementById('pageLoader').classList.add('hidden'), 1200);
 
-  // Navbar scroll
   window.addEventListener('scroll', () => {
     document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
   });
 
-  // Scroll reveal
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.15 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  // Load services from API or use demo data
+  // Load services from API
   try {
     const response = await API.getServicios();
     if (response.ok && response.servicios) {
-      // Use API data
       SERVICIOS.length = 0;
       SERVICIOS.push(...response.servicios);
     }
@@ -77,12 +70,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('Using default config');
   }
 
-  // Render
   renderServiceCards();
   renderServicePicker();
   renderCalendar();
 
-  // Terms checkbox
   document.getElementById('fTerms').addEventListener('change', (e) => {
     document.getElementById('btnConfirm').disabled = !e.target.checked;
   });
@@ -101,7 +92,6 @@ function renderServiceCards() {
   document.getElementById('serviciosPelu').innerHTML = pelu.map(s => serviceCardHTML(s)).join('');
   document.getElementById('serviciosUnas').innerHTML = unas.map(s => serviceCardHTML(s)).join('');
 
-  // Add reveal class with stagger
   document.querySelectorAll('.servicio-card').forEach((card, i) => {
     card.classList.add('reveal');
     card.style.transitionDelay = `${i * .08}s`;
@@ -150,7 +140,6 @@ function pickService(id) {
   renderServicePicker();
   updateSidebar();
   if (state.selFecha) renderSlots();
-  // scroll to booking
   document.getElementById('reservar').scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -209,7 +198,7 @@ function pickDate(y, m, d) {
   updateSidebar();
 }
 
-// ── SLOTS ─────────────────────────────────────────────
+// ── SLOTS — Fetches real availability from API ────────
 async function renderSlots() {
   const grid = document.getElementById('slotsGrid');
   if (!state.selServicio || !state.selFecha) {
@@ -217,24 +206,40 @@ async function renderSlots() {
     return;
   }
 
-  // Try to get availability from API
+  // Show loading state
+  state.slotsLoading = true;
+  grid.innerHTML = `
+    <div style="grid-column:1/-1;text-align:center;padding:32px">
+      <div style="display:inline-block;width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite"></div>
+      <p style="color:var(--muted);font-size:13px;margin-top:10px">Consultando disponibilidad...</p>
+    </div>`;
+
+  const fechaStr = `${state.selFecha.getFullYear()}-${String(state.selFecha.getMonth()+1).padStart(2,'0')}-${String(state.selFecha.getDate()).padStart(2,'0')}`;
+
   try {
-    const response = await API.getDisponibilidad(
-      `${state.selFecha.getFullYear()}-${String(state.selFecha.getMonth()+1).padStart(2,'0')}-${String(state.selFecha.getDate()).padStart(2,'0')}`,
-      state.selServicio.id
-    );
+    const response = await API.getDisponibilidad(fechaStr, state.selServicio.id);
+    state.slotsLoading = false;
+
     if (response.ok && response.disponibilidad) {
-      grid.innerHTML = response.disponibilidad.map(s => {
+      const slots = response.disponibilidad;
+
+      if (slots.length === 0) {
+        grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--muted);padding:24px;font-size:14px">😔 No hay horarios disponibles para esta fecha. Prueba otro día.</p>';
+        return;
+      }
+
+      grid.innerHTML = slots.map(s => {
         const active = state.selHora === s ? 'active' : '';
         return `<div class="slot ${active}" onclick="pickSlot('${s}')">${s}</div>`;
       }).join('');
       return;
     }
   } catch(e) {
-    console.log('Using demo slots');
+    console.log('API unavailable, generating demo slots');
+    state.slotsLoading = false;
   }
 
-  // Fallback to demo slots
+  // Fallback to demo slots only if API is not available
   const isSat = state.selFecha.getDay() === 6;
   const endHour = isSat ? 14 : 20;
   const slots = [];
@@ -245,7 +250,6 @@ async function renderSlots() {
     }
   }
 
-  // Randomly disable some slots for demo
   const seed = state.selFecha.getDate();
   const available = slots.filter((_, i) => (i * seed + 3) % 5 !== 0);
 
@@ -312,6 +316,7 @@ function closeModal() {
   document.getElementById('bookingModal').classList.remove('open');
 }
 
+// ── SUBMIT BOOKING — With conflict handling ───────────
 async function submitBooking() {
   const nombre = document.getElementById('fNombre').value.trim();
   const tel = document.getElementById('fTel').value.trim();
@@ -323,21 +328,13 @@ async function submitBooking() {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showToast('Ingresa un email válido','error');
   if (!document.getElementById('fTerms').checked) return showToast('Debes aceptar los términos','error');
 
-  // Generate reservation ID
-  const resId = 'RES-' + Math.random().toString(36).substring(2,10).toUpperCase();
+  // Disable button and show loading
+  const btn = document.getElementById('btnConfirm');
+  btn.disabled = true;
+  btn.textContent = '⏳ Procesando...';
+
   const fechaStr = `${state.selFecha.getFullYear()}-${String(state.selFecha.getMonth()+1).padStart(2,'0')}-${String(state.selFecha.getDate()).padStart(2,'0')}`;
 
-  // Save to state
-  const reserva = {
-    id: resId, nombre, email, tel,
-    servicio: state.selServicio.nombre,
-    fecha: fechaStr,
-    hora: state.selHora,
-    estado: 'Confirmada'
-  };
-  state.reservas.push(reserva);
-
-  // If API is available, send to Google Sheets
   try {
     const response = await API.crearReserva({
       nombre, email, telefono: tel,
@@ -347,20 +344,50 @@ async function submitBooking() {
       hora: state.selHora,
       notas: notas || 'N/A'
     });
+
     if (response.ok) {
-      reserva.id = response.reservaId;
+      const reserva = {
+        id: response.reservaId || response.id,
+        nombre,
+        servicio: response.servicio || state.selServicio.nombre,
+        fecha: response.fecha || fechaStr,
+        hora: response.hora || state.selHora,
+        estado: 'Confirmada'
+      };
+
+      closeModal();
+      showConfirmation(reserva);
+      showToast('¡Reserva confirmada! Revisa tu correo 📧🎉', 'success');
+    } else {
+      // CONFLICT HANDLING: If slot was taken by someone else
+      if (response.conflicto) {
+        showToast('⚠️ Ese horario acaba de ser reservado. Actualizando horarios...', 'error');
+        closeModal();
+        // Re-fetch available slots to show updated availability
+        await renderSlots();
+        state.selHora = null;
+        updateSidebar();
+      } else {
+        showToast(response.error || 'Error al crear reserva', 'error');
+      }
     }
   } catch(e) {
-    console.log('API not available, using demo mode');
-  }
-
-  closeModal();
-  showConfirmation(reserva);
-  showToast('¡Reserva confirmada! 🎉','success');
-
-  // Actualizar slots después de reservar para bloquear hora seleccionada
-  if (state.selFecha && state.selServicio) {
-    await renderSlots();
+    console.error('Error en submitBooking:', e);
+    // Fallback demo mode
+    const resId = 'RES-' + Math.random().toString(36).substring(2,10).toUpperCase();
+    const reserva = {
+      id: resId, nombre,
+      servicio: state.selServicio.nombre,
+      fecha: fechaStr,
+      hora: state.selHora,
+      estado: 'Confirmada'
+    };
+    closeModal();
+    showConfirmation(reserva);
+    showToast('¡Reserva confirmada (demo)! 🎉', 'success');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✅ Confirmar Reserva';
   }
 }
 
@@ -413,10 +440,10 @@ function showToast(msg, type='error') {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast ' + type + ' show';
-  setTimeout(() => t.classList.remove('show'), 3500);
+  setTimeout(() => t.classList.remove('show'), 4000);
 }
 
-// ── LOGO UPDATE ─────────────────────────────────────────────
+// ── LOGO UPDATE ────────────────────────────────────────
 function updateLogo(logoUrl) {
   if (logoUrl) {
     const navBrand = document.querySelector('.nav-brand');
@@ -428,6 +455,8 @@ function updateLogo(logoUrl) {
     }
   }
 }
+
+// ── ESC KEY HANDLERS ──────────────────────────────────
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeModal();
@@ -435,7 +464,6 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Close modals on backdrop click
 ['bookingModal','termsModal'].forEach(id => {
   document.getElementById(id)?.addEventListener('click', (e) => {
     if (e.target === document.getElementById(id)) {
