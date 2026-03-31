@@ -203,60 +203,100 @@ function logout() {
 }
 
 async function loadDashboardData() {
+  // Show loading indicator
+  document.getElementById('recentBookings').innerHTML = '<p style="color: var(--muted); text-align: center; padding: 32px;">⏳ Cargando reservas desde Google Sheets...</p>';
+
   try {
-    // Load reservations
     const response = await API.getReservas(ADMIN_TOKEN);
     if (response.ok && response.reservas) {
-      dashboardState.reservas = response.reservas;
+      // Normalize dates and clean data from sheet
+      dashboardState.reservas = response.reservas.map(r => ({
+        ...r,
+        fecha: normalizeFecha(r.fecha),
+        hora: String(r.hora || '').trim(),
+        estado: String(r.estado || 'Confirmada').trim(),
+        servicio: String(r.servicio || '').trim(),
+        nombre: String(r.nombre || '').trim()
+      }));
     } else {
-      // Fallback to demo data
-      dashboardState.reservas = [
-        { id:'RES-A1B2C3D4', nombre:'María González', email:'maria@email.com', servicio:'Manicure Permanente', fecha:'2026-04-01', hora:'14:00', estado:'Confirmada' },
-        { id:'RES-E5F6G7H8', nombre:'Ana López', email:'ana@email.com', servicio:'Coloración', fecha:'2026-04-02', hora:'10:00', estado:'Pendiente' },
-      ];
+      dashboardState.reservas = [];
     }
 
     updateStats();
     renderRecentBookings();
+    showToast('✅ Datos actualizados', 'success');
   } catch(e) {
-    console.log('Using demo data');
-    dashboardState.reservas = [
-      { id:'RES-A1B2C3D4', nombre:'María González', email:'maria@email.com', servicio:'Manicure Permanente', fecha:'2026-04-01', hora:'14:00', estado:'Confirmada' },
-      { id:'RES-E5F6G7H8', nombre:'Ana López', email:'ana@email.com', servicio:'Coloración', fecha:'2026-04-02', hora:'10:00', estado:'Pendiente' },
-    ];
+    console.log('API error, using empty state:', e);
+    dashboardState.reservas = [];
     updateStats();
     renderRecentBookings();
+    showToast('⚠️ No se pudo conectar con la API', 'error');
   }
 }
 
+// Normalize dates from sheet (could be Date objects, DD/MM/YYYY, or YYYY-MM-DD)
+function normalizeFecha(fecha) {
+  if (!fecha) return '';
+  const str = String(fecha).trim();
+  // Already YYYY-MM-DD
+  if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(str)) {
+    const p = str.split('-');
+    return p[0] + '-' + p[1].padStart(2,'0') + '-' + p[2].padStart(2,'0');
+  }
+  // DD/MM/YYYY
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+    const p = str.split('/');
+    return p[2] + '-' + p[1].padStart(2,'0') + '-' + p[0].padStart(2,'0');
+  }
+  // Try parsing as date
+  try {
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+  } catch(e) {}
+  return str;
+}
+
 function updateStats() {
-  const today = new Date().toISOString().split('T')[0];
-  const todayCount = dashboardState.reservas.filter(r => r.fecha === today && r.estado === 'Confirmada').length;
+  const today = new Date();
+  const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+  
+  const activeReservas = dashboardState.reservas.filter(r => r.estado !== 'Cancelada');
+  const todayCount = activeReservas.filter(r => r.fecha === todayStr).length;
   const totalRes = dashboardState.reservas.length;
 
   document.getElementById('statToday').textContent = todayCount;
   document.getElementById('statTotal').textContent = totalRes;
-  document.getElementById('statClients').textContent = new Set(dashboardState.reservas.map(r => r.email)).size;
+  document.getElementById('statClients').textContent = new Set(dashboardState.reservas.map(r => r.email).filter(Boolean)).size;
 }
 
 function renderRecentBookings() {
-  const recent = dashboardState.reservas.slice(-10).reverse(); // Últimos 10 registros recientes, decreciente
+  // Sort by date desc, then hora desc for proper order
+  const sorted = [...dashboardState.reservas].sort((a, b) => {
+    const dateComp = (b.fecha || '').localeCompare(a.fecha || '');
+    if (dateComp !== 0) return dateComp;
+    return (b.hora || '').localeCompare(a.hora || '');
+  });
+  const recent = sorted.slice(0, 15);
   const container = document.getElementById('recentBookings');
 
   if (recent.length === 0) {
-    container.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 32px;">No hay reservas recientes</p>';
+    container.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 32px;">No hay reservas registradas aún</p>';
     return;
   }
 
   container.innerHTML = recent.map(r => {
     const statusClass = r.estado === 'Confirmada' ? 'status-confirmed' : r.estado === 'Cancelada' ? 'status-cancelled' : 'status-pending';
+    const durStr = r.duracion ? ` (${r.duracion}min)` : '';
     return `
       <div class="booking-item">
         <div class="booking-info">
-          <h4>${r.nombre}</h4>
-          <p>${r.servicio} • ${r.fecha} ${r.hora}</p>
+          <h4>${r.nombre || '—'}</h4>
+          <p>${r.servicio || '—'}${durStr} · ${r.fecha || '—'} ${r.hora || '—'}</p>
+          <p style="font-size:11px;color:var(--hint)">${r.email || ''} · ${r.tel || ''}</p>
         </div>
-        <div class="booking-status ${statusClass}">${r.estado}</div>
+        <div class="booking-status ${statusClass}">${r.estado || '—'}</div>
       </div>
     `;
   }).join('');
