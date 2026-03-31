@@ -217,11 +217,12 @@ async function renderSlots() {
   const fechaStr = `${state.selFecha.getFullYear()}-${String(state.selFecha.getMonth()+1).padStart(2,'0')}-${String(state.selFecha.getDate()).padStart(2,'0')}`;
 
   try {
-    const response = await API.getDisponibilidad(fechaStr, state.selServicio.id);
+    // Usar empleado por defecto "EMP001" (Liz)
+    const response = await API.getDisponibilidad(fechaStr, "EMP001");
     state.slotsLoading = false;
 
-    if (response.ok && response.disponibilidad) {
-      const slots = response.disponibilidad;
+    if (response.ok && response.libres) {
+      const slots = response.libres;
 
       if (slots.length === 0) {
         grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--muted);padding:24px;font-size:14px">😔 No hay horarios disponibles para esta fecha. Prueba otro día.</p>';
@@ -336,22 +337,29 @@ async function submitBooking() {
   const fechaStr = `${state.selFecha.getFullYear()}-${String(state.selFecha.getMonth()+1).padStart(2,'0')}-${String(state.selFecha.getDate()).padStart(2,'0')}`;
 
   try {
-    const response = await API.crearReserva({
-      nombre, email, telefono: tel,
-      servicio: state.selServicio.id,
-      empleado: 'emp_liz',
+    // Usar estructura completa con crearReservaJSON
+    const response = await API.crearReservaJSON({
+      cliente: nombre,
+      email: email,
+      telefono: tel,
+      servicioId: state.selServicio.id,
+      servicio: state.selServicio.nombre,
+      empleadoId: "EMP001",
+      empleadoNombre: "Liz",
       fecha: fechaStr,
-      hora: state.selHora,
-      notas: notas || 'N/A'
+      horaInicio: state.selHora,
+      duracionMin: state.selServicio.dur || 30,
+      precio: state.selServicio.precio || 0,
+      notas: notas || ""
     });
 
     if (response.ok) {
       const reserva = {
         id: response.reservaId || response.id,
         nombre,
-        servicio: response.servicio || state.selServicio.nombre,
-        fecha: response.fecha || fechaStr,
-        hora: response.hora || state.selHora,
+        servicio: state.selServicio.nombre,
+        fecha: fechaStr,
+        hora: state.selHora,
         estado: 'Confirmada'
       };
 
@@ -368,7 +376,7 @@ async function submitBooking() {
         state.selHora = null;
         updateSidebar();
       } else {
-        showToast(response.error || 'Error al crear reserva', 'error');
+        showToast(response.error || response.mensaje || 'Error al crear reserva', 'error');
       }
     }
   } catch(e) {
