@@ -3,437 +3,437 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta name="theme-color" content="#C9A84C">
 <title>Dashboard — Belleza Integral</title>
-
-<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Outfit:wght@200;300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-<!-- Styles -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
-<style>
-.dashboard-container { max-width: 1200px; margin: 0 auto; padding: 32px; }
-.dashboard-header { text-align: center; margin-bottom: 40px; }
-.dashboard-header h1 { font-family: var(--font-display); color: var(--text); margin-bottom: 8px; }
-.dashboard-header p { color: var(--muted); }
-
-.dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 40px; }
-
-.dashboard-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 24px; box-shadow: var(--shadow); }
-.dashboard-card h3 { font-family: var(--font-display); color: var(--gold); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
-.stat-item { text-align: center; padding: 16px; background: var(--bg); border-radius: 8px; }
-.stat-item .number { font-size: 32px; font-weight: 700; color: var(--gold); font-family: var(--font-display); }
-.stat-item .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
-
-.quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.quick-action-btn { padding: 16px; background: linear-gradient(135deg, var(--gold), var(--gold-dk)); color: #fff; border: none; border-radius: 8px; font-family: var(--font-body); font-weight: 600; cursor: pointer; transition: all .3s; text-align: center; }
-.quick-action-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201, 168, 76, .3); }
-
-.recent-bookings { margin-top: 32px; }
-.recent-bookings h3 { margin-bottom: 16px; }
-.booking-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
-.booking-item:last-child { border-bottom: none; }
-.booking-info h4 { margin: 0; font-size: 16px; color: var(--text); }
-.booking-info p { margin: 4px 0 0 0; font-size: 13px; color: var(--muted); }
-.booking-status { padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: 600; }
-.status-confirmed { background: rgba(39, 174, 96, .12); color: #27AE60; }
-.status-pending { background: rgba(241, 196, 15, .15); color: #D4860D; }
-.status-cancelled { background: rgba(231, 76, 60, .12); color: #E74C3C; }
-
-.back-to-site { position: fixed; top: 20px; left: 20px; padding: 12px 20px; background: var(--card); border: 1px solid var(--border); border-radius: 99px; color: var(--text); text-decoration: none; font-size: 14px; font-weight: 500; box-shadow: var(--shadow); transition: all .3s; }
-.back-to-site:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.1); }
-</style>
 </head>
 <body>
 
-<a href="index.html" class="back-to-site">← Volver al sitio</a>
+<!-- LOADER -->
+<div class="loader" id="loader" style="display:none">
+  <div class="loader-spin"></div>
+  <p class="loader-txt" id="loader-txt">Cargando…</p>
+</div>
+<div class="toast-error" id="toast-error"></div>
 
-<div class="dashboard-container" id="dashboardContainer">
-  <!-- Login Form (shown initially) -->
-  <div id="loginSection">
-    <div class="dashboard-header">
-      <h1>🔐 Acceso Administrador</h1>
-      <p>Belleza Integral — Panel de control</p>
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">✨</div>
+    <h2 class="login-titulo">Panel Administrador</h2>
+    <p class="login-sub">Acceso exclusivo para el equipo de Belleza Integral</p>
+    <div class="login-input-group">
+      <label>Contraseña de acceso</label>
+      <input class="form-input" id="login-pwd" type="password"
+        placeholder="Token de administrador"
+        onkeydown="if(event.key==='Enter')iniciarSesion()">
     </div>
-    <div style="max-width: 400px; margin: 0 auto; text-align: center;">
-      <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--r); padding: 32px; box-shadow: var(--shadow);">
-        <h3 style="font-family: var(--font-display); font-size: 24px; margin-bottom: 20px; color: var(--gold);">💅 Panel Admin</h3>
-        <p style="color: var(--muted); font-size: 14px; margin-bottom: 24px;">Ingresa el token de acceso para continuar</p>
-        <input type="password" id="adminTokenInput" placeholder="Token de acceso" style="width: 100%; padding: 12px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 16px;">
-        <button onclick="loginAdmin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, var(--gold), var(--gold-dk)); color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer;">Acceder</button>
-      </div>
-    </div>
+    <button class="btn-login" onclick="iniciarSesion()">Ingresar →</button>
+    <p id="login-error" style="color:var(--danger);font-size:13px;margin-top:12px;display:none">
+      ❌ Credenciales incorrectas
+    </p>
   </div>
+</div>
 
-  <!-- Dashboard Content (shown after login) -->
-  <div id="dashboardContent" style="display: none;">
-    <div class="dashboard-header">
-      <h1>💅 Dashboard Administrativo</h1>
-      <p>Belleza Integral — Panel de control</p>
-      <button onclick="loadDashboardData()" style="position: absolute; top: 32px; right: 120px; padding: 8px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 99px; color: var(--text); cursor: pointer;">🔄 Actualizar</button>
-      <button onclick="logout()" style="position: absolute; top: 32px; right: 20px; padding: 8px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 99px; color: var(--text); cursor: pointer;">🔒 Cerrar Sesión</button>
+<!-- DASHBOARD SCREEN -->
+<div id="dash-screen" style="display:none">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <span class="nav-logo">✨</span>
+      <span class="nav-nombre">Belleza Integral · Admin</span>
+    </div>
+    <div class="nav-links">
+      <span class="nav-link" onclick="cargarDashboard()">🏠 Dashboard</span>
+      <span class="nav-link" onclick="mostrarSeccion('agenda')">📅 Agenda</span>
+      <span class="nav-link" onclick="mostrarSeccion('reservas')">📋 Reservas</span>
+      <span class="nav-link" onclick="cerrarSesion()" style="color:var(--danger)">Salir</span>
+    </div>
+  </nav>
+
+  <div class="dash-layout">
+
+    <!-- HEADER -->
+    <div class="dash-header">
+      <div>
+        <h1 class="dash-titulo">Dashboard</h1>
+        <p class="dash-fecha" id="dash-fecha-hoy"></p>
+      </div>
+      <div class="fecha-selector">
+        <label style="font-size:13px;color:var(--muted)">Ver día:</label>
+        <input type="date" class="fecha-input" id="fecha-selector-dash" onchange="cambiarFecha(this.value)">
+        <button class="btn-secondary" style="padding:8px 14px;font-size:13px" onclick="cargarDashboard()">
+          Hoy
+        </button>
+      </div>
     </div>
 
-    <div class="dashboard-grid">
-      <div class="dashboard-card">
-        <h3>📊 Estadísticas</h3>
-        <div class="stats-grid" id="statsGrid">
-          <div class="stat-item">
-            <div class="number" id="statToday">0</div>
-            <div class="label">Reservas Hoy</div>
+    <!-- STATS -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="stat-valor">—</div><div class="stat-label">Reservas hoy</div></div>
+      <div class="stat-card stat-card--success"><div class="stat-valor">—</div><div class="stat-label">Confirmadas</div></div>
+      <div class="stat-card stat-card--info"><div class="stat-valor">—</div><div class="stat-label">Completadas</div></div>
+      <div class="stat-card stat-card--danger"><div class="stat-valor">—</div><div class="stat-label">Canceladas</div></div>
+      <div class="stat-card"><div class="stat-valor" style="font-size:22px">—</div><div class="stat-label">Ingreso estimado</div></div>
+    </div>
+
+    <!-- SECCIÓN AGENDA -->
+    <div id="seccion-agenda" class="dash-section" style="margin-bottom:24px">
+      <div class="dash-section-titulo">📅 Agenda del Día</div>
+      <div id="agenda-dia">
+        <p class="agenda-vacia">Cargando agenda…</p>
+      </div>
+    </div>
+
+    <!-- SECCIÓN RESERVAS -->
+    <div id="seccion-reservas">
+      <div class="dash-grid">
+
+        <!-- Tabla reservas del día -->
+        <div class="dash-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div class="dash-section-titulo" style="margin-bottom:0">📋 Reservas del Día</div>
+            <button class="btn-secondary" style="padding:6px 12px;font-size:12px" onclick="exportarCSV()">
+              ↓ Exportar
+            </button>
           </div>
-          <div class="stat-item">
-            <div class="number" id="statTotal">0</div>
-            <div class="label">Total Reservas</div>
-          </div>
-          <div class="stat-item">
-            <div class="number" id="statServices">9</div>
-            <div class="label">Servicios</div>
-          </div>
-          <div class="stat-item">
-            <div class="number" id="statClients">0</div>
-            <div class="label">Clientes</div>
+          <div style="overflow-x:auto">
+            <table class="tabla-reservas">
+              <thead>
+                <tr>
+                  <th>ID</th><th>Cliente</th><th>Servicio</th>
+                  <th>Especialista</th><th>Hora</th><th>Estado</th><th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-reservas-body">
+                <tr><td colspan="7" style="text-align:center;color:var(--hint);padding:24px">Cargando…</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
 
-      <div class="dashboard-card">
-        <h3>⚡ Acciones Rápidas</h3>
-        <div class="quick-actions">
-          <button class="quick-action-btn" onclick="showReservationsTable()">📅 Gestionar Reservas</button>
-          <button class="quick-action-btn" onclick="viewServices()">💅 Ver Servicios</button>
-          <button class="quick-action-btn" onclick="viewClients()">👥 Ver Clientes</button>
-          <button class="quick-action-btn" onclick="sendTestEmail()">📧 Email de Prueba</button>
+        <!-- Próximas reservas -->
+        <div class="dash-section">
+          <div class="dash-section-titulo">🔜 Próximas Reservas</div>
+          <div id="proximas-lista">
+            <p style="color:var(--hint);font-size:13px;text-align:center;padding:20px">Cargando…</p>
+          </div>
         </div>
+
       </div>
     </div>
 
-    <div class="dashboard-card recent-bookings">
-      <h3>📅 Reservas Recientes</h3>
-      <div id="recentBookings">
-        <p style="color: var(--muted); text-align: center; padding: 32px;">Cargando reservas...</p>
-      </div>
-    </div>
+  </div>
+</div>
 
-    <!-- Full Reservations Table (shown when clicking "Gestionar Reservas") -->
-    <div class="dashboard-card" id="reservationsTable" style="display: none;">
-      <h3>📅 Todas las Reservas</h3>
-      <div style="overflow-x: auto;">
-        <table class="admin-table" id="fullReservationsTable">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Cliente</th>
-              <th>Servicio</th>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="reservationsTableBody">
-            <!-- Filled by JavaScript -->
-          </tbody>
-        </table>
-      </div>
+<!-- MODAL DETALLE RESERVA -->
+<div class="modal-back" id="modal-detalle">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📋 Detalle de Reserva</h3>
+      <button class="modal-close" onclick="cerrarModalDetalle()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-detalle-body">
+      <!-- Dinámico -->
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
 <script src="js/api.js"></script>
+<script src="js/calendar.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════════════
-// DASHBOARD — Admin Dashboard Logic (No Modal)
-// ═══════════════════════════════════════════════════════════════
+/* ================================================================
+   DASHBOARD — Lógica admin
+   ================================================================ */
 
-let dashboardState = {
-  reservas: [],
-  adminLogged: false
+let dashState = {
+  autenticado: false,
+  fechaActual: _hoyStr(),
+  data: null
 };
 
-const ADMIN_TOKEN = 'liz2026';
+// ── AUTENTICACIÓN ─────────────────────────────────────────────
+async function iniciarSesion() {
+  const pwd = document.getElementById('login-pwd').value.trim();
+  if (!pwd) return;
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Check if admin is logged in (from sessionStorage)
-  const loggedIn = sessionStorage.getItem('adminLogged') === 'true';
-  if (loggedIn) {
-    dashboardState.adminLogged = true;
-    showDashboard();
-  } else {
-    showLogin();
+  mostrarLoader(true, 'Verificando…');
+  try {
+    const res = await apiAdmin('validarAdmin', { token: pwd });
+    mostrarLoader(false);
+    if (res.ok && res.esAdmin) {
+      // Guardar token en sessionStorage
+      sessionStorage.setItem('barberia_token', pwd);
+      // Sobrescribir API_TOKEN con el ingresado
+      window.API_TOKEN = pwd;
+      dashState.autenticado = true;
+      mostrarDashboard();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
+  } catch(e) {
+    mostrarLoader(false);
+    mostrarError('Error de conexión.');
   }
+}
+
+function cerrarSesion() {
+  sessionStorage.removeItem('barberia_token');
+  dashState.autenticado = false;
+  document.getElementById('dash-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// Al cargar la página, verificar si ya hay sesión
+window.addEventListener('DOMContentLoaded', () => {
+  const token = sessionStorage.getItem('barberia_token');
+  if (token) {
+    window.API_TOKEN = token;
+    dashState.autenticado = true;
+    mostrarDashboard();
+  }
+  // Inicializar fecha de hoy
+  document.getElementById('fecha-selector-dash').value = dashState.fechaActual;
+  document.getElementById('dash-fecha-hoy').textContent = _formatFechaLarga(dashState.fechaActual);
 });
 
-function showLogin() {
-  document.getElementById('loginSection').style.display = 'block';
-  document.getElementById('dashboardContent').style.display = 'none';
+function mostrarDashboard() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('dash-screen').style.display = 'block';
+  cargarDashboard();
 }
 
-function showDashboard() {
-  document.getElementById('loginSection').style.display = 'none';
-  document.getElementById('dashboardContent').style.display = 'block';
-  loadDashboardData();
+// ── CARGAR DATOS ──────────────────────────────────────────────
+async function cargarDashboard() {
+  dashState.fechaActual = _hoyStr();
+  document.getElementById('fecha-selector-dash').value = dashState.fechaActual;
+  document.getElementById('dash-fecha-hoy').textContent = _formatFechaLarga(dashState.fechaActual);
 
-  // PASO 12 — Dashboard refresco automático cada 5 segundos
-  setInterval(loadDashboardData, 5000);
-}
-
-function loginAdmin() {
-  const token = document.getElementById('adminTokenInput').value;
-  if (token === ADMIN_TOKEN) {
-    dashboardState.adminLogged = true;
-    sessionStorage.setItem('adminLogged', 'true');
-    showDashboard();
-    showToast('Bienvenida Liz 💅', 'success');
-  } else {
-    showToast('Token incorrecto', 'error');
-  }
-}
-
-function logout() {
-  dashboardState.adminLogged = false;
-  sessionStorage.removeItem('adminLogged');
-  showLogin();
-  showToast('Sesión cerrada', 'success');
-}
-
-async function loadDashboardData() {
-  // Show loading indicator
-  document.getElementById('recentBookings').innerHTML = '<p style="color: var(--muted); text-align: center; padding: 32px;">⏳ Cargando reservas desde Google Sheets...</p>';
-
+  mostrarLoader(true, 'Cargando dashboard…');
   try {
-    const response = await API.getReservas(ADMIN_TOKEN);
-    if (response.ok && response.reservas) {
-      // Normalize dates and clean data from sheet
-      dashboardState.reservas = response.reservas.map(r => ({
-        ...r,
-        fecha: normalizeFecha(r.fecha),
-        hora: String(r.hora || '').trim(),
-        estado: String(r.estado || 'Confirmada').trim(),
-        servicio: String(r.servicio || '').trim(),
-        nombre: String(r.nombre || '').trim()
-      }));
-    } else {
-      dashboardState.reservas = [];
-    }
+    const data    = await apiAdmin('getDashboard', {});
+    dashState.data = data;
+    mostrarLoader(false);
 
-    updateStats();
-    renderRecentBookings();
-    showToast('✅ Datos actualizados', 'success');
+    if (!data.ok) { mostrarError(data.error||'Error al cargar datos.'); return; }
+
+    renderStats(data.stats);
+    renderTablaReservas(data.reservasHoy);
+    renderAgendaDia('agenda-dia', data.reservasHoy, data.empleados);
+    renderProximas(data.proximas);
   } catch(e) {
-    console.log('API error, using empty state:', e);
-    dashboardState.reservas = [];
-    updateStats();
-    renderRecentBookings();
-    showToast('⚠️ No se pudo conectar con la API', 'error');
+    mostrarLoader(false);
+    mostrarError('Error de conexión.');
   }
 }
 
-// Normalize dates from sheet (could be Date objects, DD/MM/YYYY, or YYYY-MM-DD)
-function normalizeFecha(fecha) {
-  if (!fecha) return '';
-  const str = String(fecha).trim();
-  // Already YYYY-MM-DD
-  if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(str)) {
-    const p = str.split('-');
-    return p[0] + '-' + p[1].padStart(2,'0') + '-' + p[2].padStart(2,'0');
-  }
-  // DD/MM/YYYY
-  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
-    const p = str.split('/');
-    return p[2] + '-' + p[1].padStart(2,'0') + '-' + p[0].padStart(2,'0');
-  }
-  // Try parsing as date
+async function cambiarFecha(fecha) {
+  dashState.fechaActual = fecha;
+  document.getElementById('dash-fecha-hoy').textContent = _formatFechaLarga(fecha);
+  mostrarLoader(true, 'Cargando reservas…');
   try {
-    const d = new Date(str);
-    if (!isNaN(d.getTime())) {
-      return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-    }
-  } catch(e) {}
-  return str;
+    const reservas = await apiAdmin('getReservasPorDia', { params:{ fecha } });
+    mostrarLoader(false);
+    renderTablaReservas(reservas);
+    if (dashState.data) renderAgendaDia('agenda-dia', reservas, dashState.data.empleados);
+  } catch(e) {
+    mostrarLoader(false);
+    mostrarError('Error al cargar reservas.');
+  }
 }
 
-function updateStats() {
-  const today = new Date();
-  const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-  
-  const activeReservas = dashboardState.reservas.filter(r => r.estado !== 'Cancelada');
-  const todayCount = activeReservas.filter(r => r.fecha === todayStr).length;
-  const totalRes = dashboardState.reservas.length;
-
-  document.getElementById('statToday').textContent = todayCount;
-  document.getElementById('statTotal').textContent = totalRes;
-  document.getElementById('statClients').textContent = new Set(dashboardState.reservas.map(r => r.email).filter(Boolean)).size;
+// ── RENDER ────────────────────────────────────────────────────
+function renderStats(stats) {
+  const cards = document.getElementById('stats-grid').querySelectorAll('.stat-card');
+  const vals  = [
+    stats.totalHoy,
+    stats.confirmadas,
+    stats.completadas,
+    stats.canceladas,
+    '$' + (stats.ingresoEstimado||0).toLocaleString('es-CL')
+  ];
+  cards.forEach((c,i) => { c.querySelector('.stat-valor').textContent = vals[i]; });
 }
 
-function renderRecentBookings() {
-  // Sort by date desc, then hora desc for proper order
-  const sorted = [...dashboardState.reservas].sort((a, b) => {
-    const dateComp = (b.fecha || '').localeCompare(a.fecha || '');
-    if (dateComp !== 0) return dateComp;
-    return (b.hora || '').localeCompare(a.hora || '');
-  });
-  const recent = sorted.slice(0, 15);
-  const container = document.getElementById('recentBookings');
-
-  if (recent.length === 0) {
-    container.innerHTML = '<p style="color: var(--muted); text-align: center; padding: 32px;">No hay reservas registradas aún</p>';
+function renderTablaReservas(reservas) {
+  const tbody = document.getElementById('tabla-reservas-body');
+  if (!reservas || !reservas.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--hint);padding:24px">Sin reservas para este día</td></tr>';
     return;
   }
 
-  container.innerHTML = recent.map(r => {
-    const statusClass = r.estado === 'Confirmada' ? 'status-confirmed' : r.estado === 'Cancelada' ? 'status-cancelled' : 'status-pending';
-    const durStr = r.duracion ? ` (${r.duracion}min)` : '';
-    return `
-      <div class="booking-item">
-        <div class="booking-info">
-          <h4>${r.nombre || '—'}</h4>
-          <p>${r.servicio || '—'}${durStr} · ${r.fecha || '—'} ${r.hora || '—'}</p>
-          <p style="font-size:11px;color:var(--hint)">${r.email || ''} · ${r.tel || ''}</p>
+  reservas.sort((a,b) => a.horaInicio.localeCompare(b.horaInicio));
+
+  tbody.innerHTML = reservas.map(r => `
+    <tr>
+      <td style="font-family:monospace;font-size:12px;color:var(--gold)">${r.id}</td>
+      <td>
+        <div style="font-weight:600;font-size:13px">${r.nombre}</div>
+        <div style="font-size:11px;color:var(--muted)">${r.email}</div>
+      </td>
+      <td style="font-size:13px">${r.servicioNombre}${r.sesionNum>1?' (S'+r.sesionNum+'/'+r.sesionesTotales+')':''}</td>
+      <td style="font-size:13px">${r.empleadoNombre}</td>
+      <td style="font-size:13px;white-space:nowrap">${r.horaInicio} — ${r.horaFin}</td>
+      <td><span class="badge badge--${r.estado.toLowerCase()}">${r.estado}</span></td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn-success" onclick="verDetalle('${r.id}')">Ver</button>
+          ${r.estado !== 'Cancelada' && r.estado !== 'Completada'
+            ? `<button class="btn-success" onclick="completarReserva('${r.id}')">✓</button>
+               <button class="btn-danger"  onclick="cancelarReservaAdmin('${r.id}')">✕</button>`
+            : ''
+          }
         </div>
-        <div class="booking-status ${statusClass}">${r.estado || '—'}</div>
-      </div>
-    `;
-  }).join('');
+      </td>
+    </tr>
+  `).join('');
 }
 
-function showReservationsTable() {
-  document.getElementById('reservationsTable').style.display = 'block';
-  renderFullReservationsTable();
-  // Scroll to table
-  document.getElementById('reservationsTable').scrollIntoView({ behavior: 'smooth' });
-}
-
-function renderFullReservationsTable() {
-  const tbody = document.getElementById('reservationsTableBody');
-  tbody.innerHTML = dashboardState.reservas.map((r, i) => {
-    const badgeCls = r.estado === 'Confirmada' ? 'badge-ok' : r.estado === 'Cancelada' ? 'badge-cancel' : 'badge-pending';
-    const canReschedule = canRescheduleCheck(r);
-    return `
-      <tr>
-        <td style="font-family:monospace;font-size:12px">${r.id}</td>
-        <td>${r.nombre}<br><span style="font-size:11px;color:var(--muted)">${r.email}</span></td>
-        <td>${r.servicio}</td>
-        <td>${r.fecha}</td>
-        <td>${r.hora}</td>
-        <td><span class="badge ${badgeCls}">${r.estado}</span></td>
-        <td>
-          ${r.estado !== 'Cancelada' ? `
-            <button class="admin-btn danger" style="margin-right:4px;font-size:11px;padding:4px 10px" onclick="adminCancel(${i})">Cancelar</button>
-            ${canReschedule ? `<button class="admin-btn" style="font-size:11px;padding:4px 10px" onclick="adminReschedule(${i})">Reagendar</button>` : ''}
-          ` : '<span style="color:var(--muted);font-size:12px">—</span>'}
-        </td>
-      </tr>
-    `;
-  }).join('');
-}
-
-function canRescheduleCheck(r) {
-  const resDate = new Date(r.fecha + 'T' + r.hora);
-  const now = new Date();
-  const diffHours = (resDate - now) / (1000 * 60 * 60);
-  return diffHours > 48;
-}
-
-async function adminCancel(i) {
-  if (!confirm('¿Cancelar esta reserva? Se enviará un correo de disculpas al cliente.')) return;
-
-  const r = dashboardState.reservas[i];
-  try {
-    const response = await API.cancelarReserva(r.id, ADMIN_TOKEN);
-    if (response.ok) {
-      dashboardState.reservas[i].estado = 'Cancelada';
-      showToast(`Reserva cancelada. Correo de disculpas enviado a ${r.email}`, 'success');
-      updateStats();
-      renderRecentBookings();
-      if (document.getElementById('reservationsTable').style.display !== 'none') {
-        renderFullReservationsTable();
-      }
-    } else {
-      showToast(response.error || 'Error al cancelar', 'error');
-    }
-  } catch(e) {
-    // Fallback to demo
-    dashboardState.reservas[i].estado = 'Cancelada';
-    showToast(`Reserva cancelada (demo). Correo simulado enviado a ${r.email}`, 'success');
-    updateStats();
-    renderRecentBookings();
-    if (document.getElementById('reservationsTable').style.display !== 'none') {
-      renderFullReservationsTable();
-    }
-  }
-}
-
-async function adminReschedule(i) {
-  const r = dashboardState.reservas[i];
-  if (!canRescheduleCheck(r)) {
-    showToast('No se puede reagendar con menos de 48 horas de anticipación. Se pierde el valor abonado.', 'error');
+function renderProximas(proximas) {
+  const el = document.getElementById('proximas-lista');
+  if (!proximas || !proximas.length) {
+    el.innerHTML = '<p style="color:var(--hint);font-size:13px;text-align:center;padding:20px">Sin próximas reservas</p>';
     return;
   }
-  const newDate = prompt('Nueva fecha (YYYY-MM-DD):', r.fecha);
-  if (!newDate) return;
-  const newHora = prompt('Nueva hora (HH:MM):', r.hora);
-  if (!newHora) return;
 
-  try {
-    const response = await API.reagendarReserva(r.id, newDate, newHora, ADMIN_TOKEN);
-    if (response.ok) {
-      dashboardState.reservas[i].fecha = newDate;
-      dashboardState.reservas[i].hora = newHora;
-      showToast('Reserva reagendada. Se notificará al cliente por correo.', 'success');
-      updateStats();
-      renderRecentBookings();
-      if (document.getElementById('reservationsTable').style.display !== 'none') {
-        renderFullReservationsTable();
-      }
-    } else {
-      showToast(response.error || 'Error al reagendar', 'error');
-    }
-  } catch(e) {
-    // Fallback to demo
-    dashboardState.reservas[i].fecha = newDate;
-    dashboardState.reservas[i].hora = newHora;
-    showToast('Reserva reagendada (demo). Correo simulado enviado.', 'success');
-    updateStats();
-    renderRecentBookings();
-    if (document.getElementById('reservationsTable').style.display !== 'none') {
-      renderFullReservationsTable();
-    }
+  el.innerHTML = proximas.slice(0,15).map(r => `
+    <div style="display:flex;justify-content:space-between;align-items:center;
+      padding:10px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <div>
+        <div style="font-weight:600">${r.nombre}</div>
+        <div style="color:var(--muted);font-size:11px">${r.servicioNombre} · ${r.empleadoNombre}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="color:var(--gold);font-weight:600">${r.fecha}</div>
+        <div style="color:var(--muted);font-size:11px">${r.horaInicio}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── ACCIONES ──────────────────────────────────────────────────
+async function cancelarReservaAdmin(reservaID) {
+  if (!confirm('¿Cancelar la reserva ' + reservaID + '?')) return;
+  mostrarLoader(true, 'Cancelando…');
+  const res = await apiAdmin('cancelarReserva', { reservaID, canceladoPor:'admin' });
+  mostrarLoader(false);
+  if (res.ok) { mostrarExito('Reserva cancelada.'); await cargarDashboard(); }
+  else mostrarError(res.error||'Error al cancelar.');
+}
+
+async function completarReserva(reservaID) {
+  mostrarLoader(true, 'Actualizando…');
+  const res = await apiAdmin('actualizarEstado', { params:{ reservaID, estado:'Completada' } });
+  mostrarLoader(false);
+  if (res.ok) { mostrarExito('Reserva marcada como completada.'); await cargarDashboard(); }
+  else mostrarError('Error al actualizar.');
+}
+
+function verDetalle(reservaID) {
+  const reservas = dashState.data?.reservasHoy || [];
+  const r = reservas.find(x => x.id === reservaID);
+  if (!r) { mostrarError('Reserva no encontrada.'); return; }
+
+  document.getElementById('modal-detalle-body').innerHTML = `
+    <div class="modal-resumen" style="grid-template-columns:1fr 1fr">
+      <div class="modal-res-item"><span>ID Reserva</span><strong style="color:var(--gold)">${r.id}</strong></div>
+      <div class="modal-res-item"><span>Estado</span><strong><span class="badge badge--${r.estado.toLowerCase()}">${r.estado}</span></strong></div>
+      <div class="modal-res-item"><span>Cliente</span><strong>${r.nombre}</strong></div>
+      <div class="modal-res-item"><span>Email</span><strong>${r.email}</strong></div>
+      <div class="modal-res-item"><span>Teléfono</span><strong>${r.telefono||'—'}</strong></div>
+      <div class="modal-res-item"><span>Servicio</span><strong>${r.servicioNombre}</strong></div>
+      <div class="modal-res-item"><span>Especialista</span><strong>${r.empleadoNombre}</strong></div>
+      <div class="modal-res-item"><span>Fecha</span><strong>${r.fecha}</strong></div>
+      <div class="modal-res-item"><span>Hora</span><strong>${r.horaInicio} — ${r.horaFin}</strong></div>
+      <div class="modal-res-item"><span>Duración</span><strong>${r.duracion} min</strong></div>
+      <div class="modal-res-item"><span>Precio</span><strong style="color:var(--gold-lt)">$${(r.precio||0).toLocaleString('es-CL')}</strong></div>
+      ${r.sesionNum > 1 ? `<div class="modal-res-item"><span>Sesión</span><strong>${r.sesionNum} de ${r.sesionesTotales}</strong></div>` : ''}
+    </div>
+    ${r.notas ? `<div style="background:var(--card2);padding:12px;border-radius:8px;font-size:13px;margin-top:12px"><strong style="color:var(--muted)">Notas:</strong> ${r.notas}</div>` : ''}
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+      ${r.estado !== 'Completada' ? `<button class="btn-success" onclick="completarReserva('${r.id}');cerrarModalDetalle()">✅ Marcar completada</button>` : ''}
+      ${r.estado !== 'Cancelada'  ? `<button class="btn-danger"  onclick="cancelarReservaAdmin('${r.id}');cerrarModalDetalle()">❌ Cancelar</button>` : ''}
+    </div>
+  `;
+  document.getElementById('modal-detalle').classList.add('open');
+}
+
+function cerrarModalDetalle() {
+  document.getElementById('modal-detalle').classList.remove('open');
+}
+
+// Click fuera del modal
+document.getElementById('modal-detalle').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModalDetalle();
+});
+
+// ── EXPORTAR CSV ──────────────────────────────────────────────
+function exportarCSV() {
+  const reservas = dashState.data?.reservasHoy || [];
+  if (!reservas.length) { mostrarError('No hay datos para exportar.'); return; }
+  const headers = ['ID','Nombre','Email','Teléfono','Servicio','Especialista','Fecha','Hora Inicio','Hora Fin','Estado','Precio'];
+  const rows = reservas.map(r => [
+    r.id, r.nombre, r.email, r.telefono||'',
+    r.servicioNombre, r.empleadoNombre, r.fecha, r.horaInicio, r.horaFin, r.estado, r.precio
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `reservas_${dashState.fechaActual}.csv`;
+  a.click();
+}
+
+// ── SECCIONES ─────────────────────────────────────────────────
+function mostrarSeccion(seccion) {
+  if (seccion === 'agenda') {
+    document.getElementById('seccion-agenda').scrollIntoView({ behavior:'smooth' });
+  } else {
+    document.getElementById('seccion-reservas').scrollIntoView({ behavior:'smooth' });
   }
 }
 
-// Placeholder functions for other actions
-function viewServices() {
-  showToast('Para editar servicios, modifica directamente en la Google Sheet.', 'success');
+// ── HELPERS ───────────────────────────────────────────────────
+function mostrarLoader(show, txt) {
+  const el = document.getElementById('loader');
+  el.style.display = show ? 'flex' : 'none';
+  const txtEl = document.getElementById('loader-txt');
+  if (txtEl && txt) txtEl.textContent = txt;
 }
 
-function viewClients() {
-  showToast('Los clientes se registran automáticamente al crear reservas.', 'success');
+function mostrarError(msg) {
+  const el = document.getElementById('toast-error');
+  el.textContent = '❌ ' + msg;
+  el.style.background = 'var(--danger)';
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 4000);
 }
 
-function sendTestEmail() {
-  showToast('Función próximamente - usa el menú de Google Sheets.', 'success');
+function mostrarExito(msg) {
+  const el = document.getElementById('toast-error');
+  el.textContent = '✅ ' + msg;
+  el.style.background = 'var(--success)';
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 3000);
 }
 
-// ── TOAST ─────────────────────────────────────────────
-function showToast(msg, type='error') {
-  const t = document.getElementById('toast');
-  t.className = 'toast';
-  t.textContent = msg;
-  if (type === 'success') t.classList.add('success');
-  else if (type === 'error') t.classList.add('error');
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+function _hoyStr() {
+  const hoy = new Date();
+  return hoy.getFullYear() + '-' +
+    String(hoy.getMonth()+1).padStart(2,'0') + '-' +
+    String(hoy.getDate()).padStart(2,'0');
+}
+
+function _formatFechaLarga(str) {
+  if (!str) return '';
+  const dias   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses  = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const f = new Date(str + 'T12:00:00');
+  return dias[f.getDay()] + ', ' + f.getDate() + ' de ' + meses[f.getMonth()] + ' ' + f.getFullYear();
 }
 </script>
-
 </body>
 </html>
+
