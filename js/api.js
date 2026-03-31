@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 const API = {
-  baseUrl: 'https://script.google.com/macros/s/AKfycbw5RZaAbKgT80osOgCz0DTezh_LY_r4oSeYhyBkOmU6x5zw00gNGlwcHeztlL5Hun8olw/exec', // Replace with your deployed GAS URL
+  baseUrl: 'https://script.google.com/macros/s/AKfycbzNtzJLQXK4xPD2ozwDRzNV2MPnpFhmIXvDp_GfdZrNd-1LOpTVYZf-MonpDf0rSJBl6w/exec', // Replace with your deployed GAS URL
 
   async call(action, params = {}) {
     const url = new URL(this.baseUrl);
