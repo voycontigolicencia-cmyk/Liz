@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 const API = {
-  baseUrl: 'https://script.google.com/macros/s/AKfycbyM56aH3eEuJHhiUOPuWqLOnOANgPsQ0oq_Bflait6w2JVOuJ6BnsrS1gCYcynLu8mdbQ/exec', // Replace with your deployed GAS URL
+  baseUrl: 'https://script.google.com/macros/s/AKfycbyZGXnXTFWt9EYF6OqlG1LF7uUgmbF76fpX0R2h_YJu0DN4cKShBcNluV_G--_lyXMZkw/exec', // Replace with your deployed GAS URL
 
   async call(action, params = {}) {
     const url = new URL(this.baseUrl);
@@ -80,5 +80,36 @@ const API = {
 
   async toggleServicio(servicioId, token) {
     return await this.call('toggleServicio', { servicioId, token });
+  },
+
+  // PASO 10 — Nuevas funciones para disponibilidad y reservas simplificadas
+  
+  // Obtener horas disponibles para una fecha y profesional
+  async getDisponibilidad(fecha, profesional) {
+    const res = await fetch(`${this.baseUrl}?action=disponibilidad&fecha=${encodeURIComponent(fecha)}&profesional=${encodeURIComponent(profesional)}`);
+    return res.json();
+  },
+
+  // Crear reserva con JSON (POST)
+  async crearReserva_json(data) {
+    // PASO 11 — Valores por defecto
+    data.servicio = data.servicio || "General";
+    data.telefono = data.telefono || "";
+
+    const res = await fetch(this.baseUrl, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: "crearReserva",
+        data: data
+      })
+    });
+
+    return res.json();
+  },
+
+  // Obtener todas las reservas (dashboard admin)
+  async getReservasDashboard() {
+    return await this.call('reservas');
   }
 };
