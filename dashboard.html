@@ -20,7 +20,7 @@
 <!-- LOGIN SCREEN -->
 <div id="login-screen" class="login-screen">
   <div class="login-card">
-    <div class="login-logo">✨</div>
+    <div class="login-logo" id="dashboard-login-logo">✨</div>
     <h2 class="login-titulo">Panel Administrador</h2>
     <p class="login-sub">Acceso exclusivo para el equipo de Belleza Integral</p>
     <div class="login-input-group">
@@ -42,7 +42,7 @@
   <!-- NAVBAR -->
   <nav class="navbar">
     <div class="nav-brand">
-      <span class="nav-logo">✨</span>
+      <span id="dashboard-nav-logo" class="nav-logo">✨</span>
       <span class="nav-nombre">Belleza Integral · Admin</span>
     </div>
     <div class="nav-links">
@@ -186,8 +186,20 @@ function cerrarSesion() {
   document.getElementById('login-screen').style.display = 'flex';
 }
 
+function aplicarLogoDashboard() {
+  if (!LOGO_URL) return;
+  const setImage = (id, size) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = `<img src="${LOGO_URL}" alt="${NEGOCIO_NOMBRE}" style="height:${size}px;width:${size}px;border-radius:10px;object-fit:cover">`;
+  };
+  setImage('dashboard-login-logo', 48);
+  setImage('dashboard-nav-logo', 32);
+}
+
 // Al cargar la página, verificar si ya hay sesión
 window.addEventListener('DOMContentLoaded', () => {
+  aplicarLogoDashboard();
   const token = sessionStorage.getItem('barberia_token');
   if (token) {
     window.API_TOKEN = token;
@@ -436,4 +448,5 @@ function _formatFechaLarga(str) {
 </script>
 </body>
 </html>
+
 
