@@ -1,114 +1,53 @@
-// ═══════════════════════════════════════════════════════════════
-// BELLEZA INTEGRAL — API Functions
-// ═══════════════════════════════════════════════════════════════
+/* ================================================================
+   BARBERÍA PRO — js/api.js
+   ⚠️ EDITA ESTAS LÍNEAS antes de subir a GitHub
+   ================================================================ */
+
+const API_URL   = 'https://script.google.com/macros/s/AKfycby6TYV8u9iCB3F7DtOj0nBkmleDBJgqg-B51dwTEQWEFtvONQYEe_UIHxXeVXx-2c4qlw/exec';
+const API_TOKEN = 'barberia-pro-2025-secret';
+
+// Logo: sube tu imagen en https://postimg.cc y pega la URL directa aquí
+const LOGO_URL       = 'https://lh3.googleusercontent.com/d/1KegXjaRohFEhnPc-FxlaC-sa8esSI3QV';
+const NEGOCIO_NOMBRE = 'Belleza Integral';
+
+async function apiGet(accion, params) {
+  try {
+    const qs  = new URLSearchParams({ accion, ...params }).toString();
+    const res = await fetch(`${API_URL}?${qs}`);
+    return res.json();
+  } catch(e) { return { ok:false, error:e.message }; }
+}
+
+async function apiPost(accion, params) {
+  try {
+    const res = await fetch(API_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body:    JSON.stringify({ accion, ...params })
+    });
+    return res.json();
+  } catch(e) { return { ok:false, error:e.message }; }
+}
+
+async function apiAdmin(accion, params) {
+  try {
+    const res = await fetch(API_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body:    JSON.stringify({ accion, token: API_TOKEN, ...params })
+    });
+    return res.json();
+  } catch(e) { return { ok:false, error:e.message }; }
+}
 
 const API = {
-  baseUrl: 'https://script.google.com/macros/s/AKfycbzr1-o8Z9_4tt4ntXKLT9WCBHIULpAl09Eg5ffWBZecy0sK7FhmPbFvIfrtBAbLvPnz/exec', // Replace with your deployed GAS URL
-
-  async call(action, params = {}) {
-    const url = new URL(this.baseUrl);
-    url.searchParams.set('accion', action); // Use 'accion' as per backend fix
-    Object.keys(params).forEach(key => {
-      url.searchParams.set(key, params[key]);
-    });
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(params)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error('API Error:', error);
-      throw error;
-    }
-  },
-
-  // Get services
-  async getServicios() {
-    return await this.call('getServicios');
-  },
-
-  // Get config
-  async getConfig() {
-    return await this.call('getConfig');
-  },
-
-  // Get employees
-  async getEmpleados() {
-    return await this.call('getEmpleados');
-  },
-
-  // Get availability for a date and employee (usa el nuevo endpoint)
-  async getDisponibilidad(fecha, empleadoId) {
-    const res = await fetch(`${this.baseUrl}?action=disponibilidad&fecha=${encodeURIComponent(fecha)}&empleado=${encodeURIComponent(empleadoId)}`);
-    return res.json();
-  },
-
-  // Create reservation
-  async crearReserva(datos) {
-    return await this.call('crearReserva', {
-      nombre: datos.nombre,
-      email: datos.email,
-      telefono: datos.telefono,
-      servicio: datos.servicio,
-      empleado: datos.empleado,
-      fecha: datos.fecha,
-      hora: datos.hora,
-      notas: datos.notas
-    });
-  },
-
-  // Admin functions
-  async cancelarReserva(reservaId, token) {
-    return await this.call('cancelarReserva', { reservaId, token });
-  },
-
-  async reagendarReserva(reservaId, nuevaFecha, nuevaHora, token) {
-    return await this.call('reagendarReserva', { reservaId, nuevaFecha, nuevaHora, token });
-  },
-
-  async getReservas(token) {
-    return await this.call('getReservas', { token });
-  },
-
-  async toggleServicio(servicioId, token) {
-    return await this.call('toggleServicio', { servicioId, token });
-  },
-
-  // Obtener horas disponibles para una fecha y empleado
-  async getDisponibilidadSimplificada(fecha, empleadoId) {
-    const res = await fetch(`${this.baseUrl}?action=disponibilidad&fecha=${encodeURIComponent(fecha)}&empleado=${encodeURIComponent(empleadoId)}`);
-    return res.json();
-  },
-
-  // Crear reserva con JSON (POST)
-  async crearReservaJSON(data) {
-    // Valores por defecto
-    data.servicio = data.servicio || "General";
-    data.telefono = data.telefono || "";
-
-    const res = await fetch(this.baseUrl, {
-      method: "POST",
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: "crearReserva",
-        data: data
-      })
-    });
-
-    return res.json();
-  },
-
-  // Obtener todas las reservas (dashboard admin)
-  async getReservasDashboard() {
-    return await this.call('reservas');
-  }
+  getServicios:      ()             => apiGet('getServicios', {}),
+  getEmpleados:      ()             => apiGet('getEmpleados', {}),
+  getDisponibilidad: (fecha, srvID) => apiGet('getDisponibilidad', { fecha, servicioID: srvID }),
+  crearReserva:      (payload)      => apiPost('crearReserva', { payload }),
+  cancelarReserva:   (reservaID)    => apiPost('cancelarReserva', { reservaID, canceladoPor:'cliente' }),
+  getDashboard:      ()             => apiAdmin('getDashboard', {}),
+  getReservasPorDia: (fecha)        => apiAdmin('getReservasPorDia', { params:{ fecha } }),
+  actualizarEstado:  (rID, estado)  => apiAdmin('actualizarEstado', { params:{ reservaID:rID, estado } }),
+  cancelarAdmin:     (reservaID)    => apiAdmin('cancelarReserva', { reservaID, canceladoPor:'admin' }),
 };
