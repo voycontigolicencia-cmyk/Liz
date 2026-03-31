@@ -181,6 +181,9 @@ function showDashboard() {
   document.getElementById('loginSection').style.display = 'none';
   document.getElementById('dashboardContent').style.display = 'block';
   loadDashboardData();
+
+  // PASO 12 — Dashboard refresco automático cada 5 segundos
+  setInterval(loadDashboardData, 5000);
 }
 
 function loginAdmin() {
