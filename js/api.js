@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 const API = {
-  baseUrl: 'https://script.google.com/macros/s/AKfycbyfp9rYIJ4a52TN5vioDklzDwAsPkoV5C7tiHgxIradJDkds6I6Pj4BevbnLccZx7wCYg/exec', // Replace with your deployed GAS URL
+  baseUrl: 'https://script.google.com/macros/s/AKfycbyUW4-uT903YeAspLrAFnMJ6nOOtpc-m1J7YSKKMQUgkOtIX91cx5DsIwgr4b-EYaWF5A/exec', // Replace with your deployed GAS URL
 
   async call(action, params = {}) {
     const url = new URL(this.baseUrl);
@@ -34,6 +34,11 @@ const API = {
   // Get services
   async getServicios() {
     return await this.call('getServicios');
+  },
+
+  // Get config
+  async getConfig() {
+    return await this.call('getConfig');
   },
 
   // Get employees
