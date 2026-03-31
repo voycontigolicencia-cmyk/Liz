@@ -3,12 +3,15 @@
    ⚠️ EDITA ESTAS LÍNEAS antes de subir a GitHub
    ================================================================ */
 
-const API_URL   = 'https://script.google.com/macros/s/AKfycby6TYV8u9iCB3F7DtOj0nBkmleDBJgqg-B51dwTEQWEFtvONQYEe_UIHxXeVXx-2c4qlw/exec';
+const API_URL   = 'https://script.google.com/macros/s/AKfycbxekMU7y1iCASOd2RbA5-ZHK0gjrDxvTh1PQd9H3fI4l6YB9EkjQgIUJMkvHZ6cLypkFg/exec';
 const API_TOKEN = 'barberia-pro-2025-secret';
 
 // Logo: sube tu imagen en https://postimg.cc y pega la URL directa aquí
 const LOGO_URL       = 'https://lh3.googleusercontent.com/d/1KegXjaRohFEhnPc-FxlaC-sa8esSI3QV';
 const NEGOCIO_NOMBRE = 'Belleza Integral';
+
+// Nota: también se define en 1_config.gs para el backend/hojas.
+
 
 async function apiGet(accion, params) {
   try {
