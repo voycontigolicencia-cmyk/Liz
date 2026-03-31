@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 const API = {
-  baseUrl: 'https://script.google.com/macros/s/AKfycbyZGXnXTFWt9EYF6OqlG1LF7uUgmbF76fpX0R2h_YJu0DN4cKShBcNluV_G--_lyXMZkw/exec', // Replace with your deployed GAS URL
+  baseUrl: 'https://script.google.com/macros/s/AKfycbyTRcS8z7tc85myTHak9_iLDLbWeXuIGgx0_hAUR3vcWvqlUBtICGzn4GQcJ22Ye6m2Sw/exec', // Replace with your deployed GAS URL
 
   async call(action, params = {}) {
     const url = new URL(this.baseUrl);
@@ -46,9 +46,10 @@ const API = {
     return await this.call('getEmpleados');
   },
 
-  // Get availability for a date and service
-  async getDisponibilidad(fecha, servicio) {
-    return await this.call('getDisponibilidad', { fecha, servicio });
+  // Get availability for a date and employee (usa el nuevo endpoint)
+  async getDisponibilidad(fecha, empleadoId) {
+    const res = await fetch(`${this.baseUrl}?action=disponibilidad&fecha=${encodeURIComponent(fecha)}&empleado=${encodeURIComponent(empleadoId)}`);
+    return res.json();
   },
 
   // Create reservation
@@ -82,17 +83,15 @@ const API = {
     return await this.call('toggleServicio', { servicioId, token });
   },
 
-  // PASO 10 — Nuevas funciones para disponibilidad y reservas simplificadas
-  
-  // Obtener horas disponibles para una fecha y profesional
-  async getDisponibilidad(fecha, profesional) {
-    const res = await fetch(`${this.baseUrl}?action=disponibilidad&fecha=${encodeURIComponent(fecha)}&profesional=${encodeURIComponent(profesional)}`);
+  // Obtener horas disponibles para una fecha y empleado
+  async getDisponibilidadSimplificada(fecha, empleadoId) {
+    const res = await fetch(`${this.baseUrl}?action=disponibilidad&fecha=${encodeURIComponent(fecha)}&empleado=${encodeURIComponent(empleadoId)}`);
     return res.json();
   },
 
   // Crear reserva con JSON (POST)
-  async crearReserva_json(data) {
-    // PASO 11 — Valores por defecto
+  async crearReservaJSON(data) {
+    // Valores por defecto
     data.servicio = data.servicio || "General";
     data.telefono = data.telefono || "";
 
