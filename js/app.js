@@ -67,6 +67,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('Using demo services data');
   }
 
+  // Load config and update logo
+  try {
+    const configResponse = await API.getConfig();
+    if (configResponse.ok && configResponse.config) {
+      updateLogo(configResponse.config.logoUrl);
+    }
+  } catch(e) {
+    console.log('Using default config');
+  }
+
   // Render
   renderServiceCards();
   renderServicePicker();
@@ -389,157 +399,6 @@ function resetBooking() {
   document.getElementById('reservar').scrollIntoView({ behavior: 'smooth' });
 }
 
-// ── ADMIN ─────────────────────────────────────────────
-const ADMIN_TOKEN = 'liz2026';
-
-function openAdmin() {
-  document.getElementById('adminOverlay').classList.add('open');
-  if (!state.adminLogged) {
-    renderAdminLogin();
-  } else {
-    renderAdminDashboard();
-  }
-}
-function closeAdmin() { document.getElementById('adminOverlay').classList.remove('open'); }
-
-function renderAdminLogin() {
-  document.getElementById('adminBody').innerHTML = `
-    <div class="admin-login">
-      <h3 style="font-family:var(--font-display);font-size:24px;margin-bottom:20px;color:var(--gold)">🔐 Acceso Administrador</h3>
-      <p style="color:var(--muted);font-size:14px;margin-bottom:20px">Ingresa el token de acceso</p>
-      <div>
-        <input type="password" id="adminToken" placeholder="Token de acceso">
-        <button class="admin-btn" onclick="loginAdmin()">Acceder</button>
-      </div>
-    </div>`;
-}
-
-function loginAdmin() {
-  const token = document.getElementById('adminToken').value;
-  if (token === ADMIN_TOKEN) {
-    state.adminLogged = true;
-    renderAdminDashboard();
-    showToast('Bienvenida Liz 💅','success');
-  } else {
-    showToast('Token incorrecto','error');
-  }
-}
-
-async function renderAdminDashboard() {
-  const today = new Date().toISOString().split('T')[0];
-  const todayCount = state.reservas.filter(r => r.fecha === today).length;
-  const totalRes = state.reservas.length;
-
-  // Try to get real data from API
-  try {
-    const response = await API.getReservas(ADMIN_TOKEN);
-    if (response.ok && response.reservas) {
-      state.reservas = response.reservas;
-    }
-  } catch(e) {
-    console.log('Using demo reservations');
-  }
-
-  let html = `
-    <div class="admin-stats">
-      <div class="admin-stat"><div class="num">${todayCount}</div><div class="lbl">Reservas Hoy</div></div>
-      <div class="admin-stat"><div class="num">${totalRes}</div><div class="lbl">Total Reservas</div></div>
-      <div class="admin-stat"><div class="num">${SERVICIOS.length}</div><div class="lbl">Servicios</div></div>
-      <div class="admin-stat"><div class="num">1</div><div class="lbl">Empleados</div></div>
-    </div>
-
-    <h3 style="font-family:var(--font-display);font-size:20px;margin-bottom:16px;color:var(--gold)">📅 Reservas</h3>
-    <div style="overflow-x:auto;margin-bottom:28px">
-      <table class="admin-table">
-        <thead><tr><th>ID</th><th>Cliente</th><th>Servicio</th><th>Fecha</th><th>Hora</th><th>Estado</th><th>Acciones</th></tr></thead>
-        <tbody>`;
-
-  state.reservas.forEach((r, i) => {
-    const badgeCls = r.estado === 'Confirmada' ? 'badge-ok' : r.estado === 'Cancelada' ? 'badge-cancel' : 'badge-pending';
-    const canReschedule = canRescheduleCheck(r);
-    html += `<tr>
-      <td style="font-family:monospace;font-size:12px">${r.id}</td>
-      <td>${r.nombre}<br><span style="font-size:11px;color:var(--muted)">${r.email}</span></td>
-      <td>${r.servicio}</td>
-      <td>${r.fecha}</td>
-      <td>${r.hora}</td>
-      <td><span class="badge ${badgeCls}">${r.estado}</span></td>
-      <td>
-        ${r.estado !== 'Cancelada' ? `
-          <button class="admin-btn danger" style="margin-right:4px;font-size:11px;padding:4px 10px" onclick="adminCancel(${i})">Cancelar</button>
-          ${canReschedule ? `<button class="admin-btn" style="font-size:11px;padding:4px 10px" onclick="adminReschedule(${i})">Reagendar</button>` : ''}
-        ` : '<span style="color:var(--muted);font-size:12px">—</span>'}
-      </td>
-    </tr>`;
-  });
-
-  html += `</tbody></table></div>
-    <h3 style="font-family:var(--font-display);font-size:20px;margin-bottom:16px;color:var(--gold)">🛎️ Servicios</h3>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:12px">Para editar servicios, modifica directamente en la Google Sheet. Cada servicio tiene una celda para link de imagen.</p>
-
-    <button class="admin-btn" style="margin-top:16px" onclick="state.adminLogged=false;renderAdminLogin()">🔒 Cerrar Sesión</button>`;
-
-  document.getElementById('adminBody').innerHTML = html;
-}
-
-function canRescheduleCheck(r) {
-  const resDate = new Date(r.fecha + 'T' + r.hora);
-  const now = new Date();
-  const diffHours = (resDate - now) / (1000 * 60 * 60);
-  return diffHours > 48;
-}
-
-async function adminCancel(i) {
-  if (!confirm('¿Cancelar esta reserva? Se enviará un correo de disculpas al cliente.')) return;
-
-  const r = state.reservas[i];
-  try {
-    const response = await API.cancelarReserva(r.id, ADMIN_TOKEN);
-    if (response.ok) {
-      state.reservas[i].estado = 'Cancelada';
-      showToast(`Reserva cancelada. Correo de disculpas enviado a ${r.email}`, 'success');
-      renderAdminDashboard();
-    } else {
-      showToast(response.error || 'Error al cancelar', 'error');
-    }
-  } catch(e) {
-    // Fallback to demo
-    state.reservas[i].estado = 'Cancelada';
-    showToast(`Reserva cancelada (demo). Correo simulado enviado a ${r.email}`, 'success');
-    renderAdminDashboard();
-  }
-}
-
-async function adminReschedule(i) {
-  const r = state.reservas[i];
-  if (!canRescheduleCheck(r)) {
-    showToast('No se puede reagendar con menos de 48 horas de anticipación. Se pierde el valor abonado.', 'error');
-    return;
-  }
-  const newDate = prompt('Nueva fecha (YYYY-MM-DD):', r.fecha);
-  if (!newDate) return;
-  const newHora = prompt('Nueva hora (HH:MM):', r.hora);
-  if (!newHora) return;
-
-  try {
-    const response = await API.reagendarReserva(r.id, newDate, newHora, ADMIN_TOKEN);
-    if (response.ok) {
-      state.reservas[i].fecha = newDate;
-      state.reservas[i].hora = newHora;
-      showToast('Reserva reagendada. Se notificará al cliente por correo.', 'success');
-      renderAdminDashboard();
-    } else {
-      showToast(response.error || 'Error al reagendar', 'error');
-    }
-  } catch(e) {
-    // Fallback to demo
-    state.reservas[i].fecha = newDate;
-    state.reservas[i].hora = newHora;
-    showToast('Reserva reagendada (demo). Correo simulado enviado.', 'success');
-    renderAdminDashboard();
-  }
-}
-
 // ── TERMS ─────────────────────────────────────────────
 function openTerms() { document.getElementById('termsModal').classList.add('open'); }
 function closeTerms() { document.getElementById('termsModal').classList.remove('open'); }
@@ -552,21 +411,30 @@ function showToast(msg, type='error') {
   setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-// ── ESC KEY HANDLERS ──────────────────────────────────
+// ── LOGO UPDATE ─────────────────────────────────────────────
+function updateLogo(logoUrl) {
+  if (logoUrl) {
+    const navBrand = document.querySelector('.nav-brand');
+    if (navBrand) {
+      navBrand.innerHTML = `
+        <img src="${logoUrl}" alt="Logo" style="height: 32px; margin-right: 8px; vertical-align: middle;">
+        <span class="dot"></span> Belleza Integral
+      `;
+    }
+  }
+}
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeModal();
-    closeAdmin();
     closeTerms();
   }
 });
 
 // Close modals on backdrop click
-['bookingModal','adminOverlay','termsModal'].forEach(id => {
+['bookingModal','termsModal'].forEach(id => {
   document.getElementById(id)?.addEventListener('click', (e) => {
     if (e.target === document.getElementById(id)) {
       if (id === 'bookingModal') closeModal();
-      else if (id === 'adminOverlay') closeAdmin();
       else closeTerms();
     }
   });
