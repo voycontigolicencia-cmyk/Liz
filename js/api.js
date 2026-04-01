@@ -3,7 +3,7 @@
    ⚠️ EDITA ESTAS LÍNEAS antes de subir a GitHub
    ================================================================ */
 
-const API_URL   = 'https://script.google.com/macros/s/AKfycbzL-N1DX3qG_5vXGIBOMUyzrFUh2pg5FMgyLojcw1r9I3T7Fc2bz1obEmTt0e7zA_03lQ/exec';
+const API_URL   = 'https://script.google.com/macros/s/AKfycbyDGJL5w7yoqMVF6oez49COZw-e3QHYhAAmNBJ9LSCE2xUApdiEQe2uGvRE7ur2vMLGtw/exec';
 const API_TOKEN = 'barberia-pro-2025-secret';
 
 // Logo: sube tu imagen en https://postimg.cc y pega la URL directa aquí
