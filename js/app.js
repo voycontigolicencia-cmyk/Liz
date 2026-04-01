@@ -39,19 +39,12 @@ function aplicarLogo() {
     navLogo.innerHTML = `<img src="${LOGO_URL}" alt="${NEGOCIO_NOMBRE}"
       style="height:38px;width:38px;border-radius:50%;object-fit:cover;border:2px solid var(--gold)">`;
   }
-
   // Sidebar info y footer
   ['sidebar-logo','footer-logo'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = `<img src="${LOGO_URL}" alt="${NEGOCIO_NOMBRE}"
       style="height:52px;border-radius:10px;object-fit:contain">`;
   });
-
-  // Confirmación pantalla (y otros bloques)
-  const confirmLogo = document.getElementById('confirm-logo');
-  if (confirmLogo) {
-    confirmLogo.innerHTML = `<img src="${LOGO_URL}" alt="${NEGOCIO_NOMBRE}" style="height:64px;border-radius:10px;object-fit:contain;margin-bottom:12px">`;
-  }
 }
 
 // ── SERVICIOS ─────────────────────────────────────────────────
@@ -64,22 +57,11 @@ function renderServicios() {
     return;
   }
 
-  // Agrupar categorías (Cabello, Manos, Maquillaje) + fallback por nombre de categoría
-  const grupoMap = {
-    "Cabello": "Cabello",
-    "Color": "Cabello",
-    "Cuidado": "Cabello",
-    "Maquillaje": "Maquillaje",
-    "Depilación": "Maquillaje",
-    "Uñas": "Manos",
-    "Manos": "Manos"
-  };
-
+  // Agrupar por categoría
   const cats = {};
   state.servicios.forEach(s => {
-    const key = grupoMap[s.categoria] || s.categoria || "Otros";
-    if (!cats[key]) cats[key] = [];
-    cats[key].push(s);
+    if (!cats[s.categoria]) cats[s.categoria] = [];
+    cats[s.categoria].push(s);
   });
 
   let html = '';
@@ -98,14 +80,9 @@ function renderServicios() {
       const skTag  = s.requiereSkill
         ? `<span class="srv-skill">${s.requiereSkill}</span>` : '';
 
-      const imgHtml = s.imagen
-        ? `<img class="srv-card-img" src="${s.imagen}" alt="${s.nombre}" loading="lazy">`
-        : "";
-
       html += `
         <div class="srv-card ${esSel ? 'srv-card--sel' : ''}"
              onclick="seleccionarServicio('${s.id}')">
-          ${imgHtml}
           <div class="srv-card-info">
             <div class="srv-card-nombre">${s.nombre} ${sesTag} ${skTag}</div>
             <div class="srv-card-detalles">
@@ -407,4 +384,3 @@ function _formatFecha(str) {
   const f = new Date(str + 'T12:00:00');
   return `${dias[f.getDay()]} ${f.getDate()} de ${meses[f.getMonth()]} ${f.getFullYear()}`;
 }
-
